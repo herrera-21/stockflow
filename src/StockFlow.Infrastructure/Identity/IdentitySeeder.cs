@@ -5,8 +5,16 @@ using StockFlow.Domain;
 
 namespace StockFlow.Infrastructure.Identity;
 
+/// <summary>
+/// Seeds the fixed application roles and, when configured, a single administrator account. Safe to
+/// run on every startup because it only creates what is missing.
+/// </summary>
 public static class IdentitySeeder
 {
+    /// <summary>
+    /// Ensures the known roles exist and creates the seed administrator when credentials are set.
+    /// </summary>
+    /// <param name="services">Scoped service provider used to resolve the Identity managers.</param>
     public static async Task SeedAsync(IServiceProvider services)
     {
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();

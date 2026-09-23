@@ -1,0 +1,54 @@
+@model StockFlow.Web.Pages.Suppliers.IndexModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@if (Model.Suppliers.Items.Count == 0)
+{
+    <div class="alert alert-info" role="alert">@Localizer["EmptySuppliers"]</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th scope="col">@Localizer["Name"]</th>
+                <th scope="col">@Localizer["TaxId"]</th>
+                <th scope="col">@Localizer["ContactName"]</th>
+                <th scope="col">@Localizer["Phone"]</th>
+                <th scope="col">@Localizer["Email"]</th>
+                <th scope="col">@Localizer["Status"]</th>
+                <th scope="col" class="text-end">@Localizer["Actions"]</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var supplier in Model.Suppliers.Items)
+            {
+                <partial name="_SupplierRow" model="new SupplierRowViewModel(supplier, Model.PageNumber, Model.Search)" />
+            }
+        </tbody>
+    </table>
+
+    @if (Model.Suppliers.TotalPages > 1)
+    {
+        <nav aria-label="@Localizer["SuppliersTitle"]">
+            <ul class="pagination">
+                <li class="page-item @(Model.Suppliers.HasPreviousPage ? string.Empty : "disabled")">
+                    <a class="page-link"
+                       href="@Url.Page("/Suppliers/Index", null, new { pageNumber = Model.PageNumber - 1, search = Model.Search })"
+                       hx-get="@Url.Page("/Suppliers/Index", "Rows", new { pageNumber = Model.PageNumber - 1, search = Model.Search })"
+                       hx-target="#suppliers-container"
+                       hx-swap="innerHTML">@Localizer["Previous"]</a>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">@Localizer["PageOf", Model.PageNumber, Model.Suppliers.TotalPages]</span>
+                </li>
+                <li class="page-item @(Model.Suppliers.HasNextPage ? string.Empty : "disabled")">
+                    <a class="page-link"
+                       href="@Url.Page("/Suppliers/Index", null, new { pageNumber = Model.PageNumber + 1, search = Model.Search })"
+                       hx-get="@Url.Page("/Suppliers/Index", "Rows", new { pageNumber = Model.PageNumber + 1, search = Model.Search })"
+                       hx-target="#suppliers-container"
+                       hx-swap="innerHTML">@Localizer["Next"]</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

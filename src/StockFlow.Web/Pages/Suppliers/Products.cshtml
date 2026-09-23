@@ -1,0 +1,114 @@
+@page "{id:guid}"
+@model StockFlow.Web.Pages.Suppliers.ProductsModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["SupplierProductsTitle"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@Localizer["SupplierProductsTitle"]</h1>
+    <a asp-page="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">@Model.Supplier.Name</div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@Localizer["TaxId"]</dt>
+            <dd class="col-sm-9">@Model.Supplier.TaxId</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">@Localizer["AssignProduct"]</div>
+    <div class="card-body">
+        <form method="post" asp-page-handler="Assign">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.ProductId" class="form-label"></label>
+                    <select asp-for="Input.ProductId" class="form-select">
+                        <option value="">@Localizer["SelectProduct"]</option>
+                        @foreach (var product in Model.AvailableProducts)
+                        {
+                            <option value="@product.Id">@product.Name (@product.Sku)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.ProductId" class="text-danger"></span>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="Input.SupplierSku" class="form-label"></label>
+                    <input asp-for="Input.SupplierSku" class="form-control" />
+                    <span asp-validation-for="Input.SupplierSku" class="text-danger"></span>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="Input.PurchasePrice" class="form-label"></label>
+                    <input asp-for="Input.PurchasePrice" class="form-control" />
+                    <span asp-validation-for="Input.PurchasePrice" class="text-danger"></span>
+                </div>
+                <div class="col-md-2 mb-3 d-flex align-items-end">
+                    <div class="form-check">
+                        <input asp-for="Input.IsPreferred" class="form-check-input" />
+                        <label asp-for="Input.IsPreferred" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+        </form>
+    </div>
+</div>
+
+@if (Model.Products.Count == 0)
+{
+    <div class="alert alert-info" role="alert">@Localizer["NoSupplierProducts"]</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">@Localizer["Product"]</th>
+                    <th scope="col">@Localizer["Sku"]</th>
+                    <th scope="col">@Localizer["SupplierSku"]</th>
+                    <th scope="col">@Localizer["PurchasePrice"]</th>
+                    <th scope="col">@Localizer["PreferredSupplier"]</th>
+                    <th scope="col" class="text-end">@Localizer["Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Model.Products)
+                {
+                    <tr>
+                        <td>@product.ProductName</td>
+                        <td>@product.ProductSku</td>
+                        <td>@product.SupplierSku</td>
+                        <td>@product.PurchasePrice</td>
+                        <td>
+                            @if (product.IsPreferred)
+                            {
+                                <span class="badge bg-success">@Localizer["PreferredSupplier"]</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a asp-page="Products" asp-route-id="@Model.Supplier.Id" asp-route-productId="@product.ProductId"
+                               class="btn btn-sm btn-outline-secondary">@Localizer["Edit"]</a>
+                            <form method="post" asp-page-handler="Remove" asp-route-id="@Model.Supplier.Id"
+                                  asp-route-productId="@product.ProductId" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">@Localizer["Remove"]</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

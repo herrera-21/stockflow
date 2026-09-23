@@ -1,0 +1,47 @@
+@model StockFlow.Web.Pages.Products.ProductRowViewModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+<tr id="product-row-@Model.Product.Id">
+    <td>@Model.Product.Sku</td>
+    <td>@Model.Product.Name</td>
+    <td>@Model.Product.Category</td>
+    <td class="text-end">@Model.Product.SalePrice.ToString("N2")</td>
+    <td class="text-end">
+        <span class="@(Model.Product.HasLowStock ? "text-danger fw-bold" : "")">@Model.Product.CurrentStock</span>
+        @if (Model.Product.HasLowStock)
+        {
+            <span class="badge bg-warning text-dark ms-1">@Localizer["LowStock"]</span>
+        }
+    </td>
+    <td>
+        @if (Model.Product.IsActive)
+        {
+            <span class="badge bg-success">@Localizer["ActiveStatus"]</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary">@Localizer["InactiveStatus"]</span>
+        }
+    </td>
+    @if (Model.CanManageProducts)
+    {
+        <td class="text-end">
+            <a asp-page="Edit" asp-route-id="@Model.Product.Id" class="btn btn-sm btn-outline-secondary">@Localizer["Edit"]</a>
+            @if (Model.Product.IsActive)
+            {
+                <form method="post"
+                      asp-page-handler="Deactivate"
+                      asp-route-id="@Model.Product.Id"
+                      asp-route-pageNumber="@Model.PageNumber"
+                      asp-route-search="@Model.Search"
+                      asp-route-category="@Model.Category"
+                      hx-post="@Url.Page("/Products/Index", "Deactivate", new { id = Model.Product.Id, pageNumber = Model.PageNumber, search = Model.Search, category = Model.Category })"
+                      hx-target="#product-row-@Model.Product.Id"
+                      hx-swap="outerHTML"
+                      class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">@Localizer["Deactivate"]</button>
+                </form>
+            }
+        </td>
+    }
+</tr>

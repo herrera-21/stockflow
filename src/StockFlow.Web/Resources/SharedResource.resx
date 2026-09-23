@@ -64,4 +64,127 @@
   <data name="Language" xml:space="preserve">
     <value>Idioma</value>
   </data>
+  <data name="NavProducts" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="ProductsTitle" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="NewProduct" xml:space="preserve">
+    <value>Nuevo producto</value>
+  </data>
+  <data name="CreateProductTitle" xml:space="preserve">
+    <value>Crear producto</value>
+  </data>
+  <data name="EditProductTitle" xml:space="preserve">
+    <value>Editar producto</value>
+  </data>
+  <data name="EmptyProducts" xml:space="preserve">
+    <value>No hay productos para mostrar.</value>
+  </data>
+  <data name="SearchProductsPlaceholder" xml:space="preserve">
+    <value>Buscar por nombre o SKU...</value>
+  </data>
+  <data name="FilterCategoryPlaceholder" xml:space="preserve">
+    <value>Filtrar por categoría...</value>
+  </data>
+  <data name="Sku" xml:space="preserve">
+    <value>SKU</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="PurchasePrice" xml:space="preserve">
+    <value>Precio de compra</value>
+  </data>
+  <data name="SalePrice" xml:space="preserve">
+    <value>Precio de venta</value>
+  </data>
+  <data name="TaxRate" xml:space="preserve">
+    <value>Impuesto (%)</value>
+  </data>
+  <data name="CurrentStock" xml:space="preserve">
+    <value>Stock actual</value>
+  </data>
+  <data name="InitialStock" xml:space="preserve">
+    <value>Stock inicial</value>
+  </data>
+  <data name="MinimumStock" xml:space="preserve">
+    <value>Stock mínimo</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ActiveStatus" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="InactiveStatus" xml:space="preserve">
+    <value>Inactivo</value>
+  </data>
+  <data name="LowStock" xml:space="preserve">
+    <value>Stock bajo</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Acciones</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Crear</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="BackToList" xml:space="preserve">
+    <value>Volver al listado</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Desactivar</value>
+  </data>
+  <data name="ProductCreated" xml:space="preserve">
+    <value>Producto creado correctamente.</value>
+  </data>
+  <data name="ProductUpdated" xml:space="preserve">
+    <value>Producto actualizado correctamente.</value>
+  </data>
+  <data name="ProductDeactivated" xml:space="preserve">
+    <value>Producto desactivado correctamente.</value>
+  </data>
+  <data name="ProductSkuAlreadyExists" xml:space="preserve">
+    <value>Ya existe un producto con ese SKU.</value>
+  </data>
+  <data name="ProductNotFound" xml:space="preserve">
+    <value>Producto no encontrado.</value>
+  </data>
+  <data name="PageOf" xml:space="preserve">
+    <value>Página {0} de {1}</value>
+  </data>
+  <data name="Previous" xml:space="preserve">
+    <value>Anterior</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Siguiente</value>
+  </data>
+  <data name="ValidationRequired" xml:space="preserve">
+    <value>El campo {0} es obligatorio.</value>
+  </data>
+  <data name="ValidationStringLength" xml:space="preserve">
+    <value>El campo {0} admite como máximo {1} caracteres.</value>
+  </data>
+  <data name="ValidationRange" xml:space="preserve">
+    <value>El valor de {0} debe estar entre {1} y {2}.</value>
+  </data>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>No tienes permiso para acceder a esta página.</value>
+  </data>
 </root>

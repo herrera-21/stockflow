@@ -1,0 +1,13 @@
+@page
+@model StockFlow.Web.Pages.Account.AccessDeniedModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["AccessDenied"];
+}
+
+<h1 class="text-danger">@Localizer["AccessDenied"]</h1>
+
+<p>
+    <a asp-page="/Index">@Localizer["NavHome"]</a>
+</p>

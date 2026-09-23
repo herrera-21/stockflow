@@ -1,0 +1,40 @@
+@page
+@model StockFlow.Web.Pages.Products.IndexModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["ProductsTitle"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@Localizer["ProductsTitle"]</h1>
+    @if (Model.CanManageProducts)
+    {
+        <a asp-page="Create" class="btn btn-primary">@Localizer["NewProduct"]</a>
+    }
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-8">
+        <input type="search" id="product-search" name="search" value="@Model.Search" class="form-control"
+               placeholder="@Localizer["SearchProductsPlaceholder"]"
+               hx-get="@Url.Page("/Products/Index", "Rows")"
+               hx-trigger="keyup changed delay:300ms, search"
+               hx-target="#products-container"
+               hx-swap="innerHTML"
+               hx-include="#product-category" />
+    </div>
+    <div class="col-md-4">
+        <input type="search" id="product-category" name="category" value="@Model.Category" class="form-control"
+               placeholder="@Localizer["FilterCategoryPlaceholder"]"
+               hx-get="@Url.Page("/Products/Index", "Rows")"
+               hx-trigger="keyup changed delay:300ms, search"
+               hx-target="#products-container"
+               hx-swap="innerHTML"
+               hx-include="#product-search" />
+    </div>
+</div>
+
+<div id="products-container">
+    <partial name="_ProductsTable" model="Model" />
+</div>

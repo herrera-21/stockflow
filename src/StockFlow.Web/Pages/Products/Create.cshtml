@@ -1,0 +1,80 @@
+@page
+@model StockFlow.Web.Pages.Products.CreateModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["CreateProductTitle"];
+}
+
+<h1>@Localizer["CreateProductTitle"]</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.Sku" class="form-label"></label>
+                    <input asp-for="Input.Sku" class="form-control" />
+                    <span asp-validation-for="Input.Sku" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.Name" class="form-label"></label>
+                    <input asp-for="Input.Name" class="form-control" />
+                    <span asp-validation-for="Input.Name" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Description" class="form-label"></label>
+                <textarea asp-for="Input.Description" class="form-control" rows="2"></textarea>
+                <span asp-validation-for="Input.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Category" class="form-label"></label>
+                <input asp-for="Input.Category" class="form-control" />
+                <span asp-validation-for="Input.Category" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.PurchasePrice" class="form-label"></label>
+                    <input asp-for="Input.PurchasePrice" class="form-control" step="0.01" />
+                    <span asp-validation-for="Input.PurchasePrice" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.SalePrice" class="form-label"></label>
+                    <input asp-for="Input.SalePrice" class="form-control" step="0.01" />
+                    <span asp-validation-for="Input.SalePrice" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.TaxRate" class="form-label"></label>
+                    <input asp-for="Input.TaxRate" class="form-control" step="0.01" />
+                    <span asp-validation-for="Input.TaxRate" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.InitialStock" class="form-label"></label>
+                    <input asp-for="Input.InitialStock" class="form-control" />
+                    <span asp-validation-for="Input.InitialStock" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.MinimumStock" class="form-label"></label>
+                    <input asp-for="Input.MinimumStock" class="form-control" />
+                    <span asp-validation-for="Input.MinimumStock" class="text-danger"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+            <a asp-page="Index" class="btn btn-outline-secondary">@Localizer["Cancel"]</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

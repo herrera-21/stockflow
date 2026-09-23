@@ -13,6 +13,15 @@ public interface IAppDbContext
     /// <summary>Products set.</summary>
     DbSet<Product> Products { get; }
 
+    /// <summary>Customers set.</summary>
+    DbSet<Customer> Customers { get; }
+
+    /// <summary>Suppliers set.</summary>
+    DbSet<Supplier> Suppliers { get; }
+
+    /// <summary>Product-supplier associations set.</summary>
+    DbSet<ProductSupplier> ProductSuppliers { get; }
+
     /// <summary>Persists pending changes to the database.</summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The number of state entries written to the database.</returns>

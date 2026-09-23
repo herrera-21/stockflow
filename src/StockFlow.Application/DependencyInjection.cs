@@ -1,6 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
+using StockFlow.Application.Customers.Commands;
+using StockFlow.Application.Customers.Queries;
 using StockFlow.Application.Products.Commands;
 using StockFlow.Application.Products.Queries;
+using StockFlow.Application.Suppliers.Commands;
+using StockFlow.Application.Suppliers.Queries;
 
 namespace StockFlow.Application;
 
@@ -10,7 +14,7 @@ namespace StockFlow.Application;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Adds the product command and query handlers to the service collection.
+    /// Adds the product, customer and supplier command and query handlers to the service collection.
     /// </summary>
     /// <param name="services">The service collection to register into.</param>
     /// <returns>The same service collection, to allow chaining.</returns>
@@ -21,6 +25,21 @@ public static class DependencyInjection
         services.AddScoped<DeactivateProductHandler>();
         services.AddScoped<GetProductsPagedHandler>();
         services.AddScoped<GetProductByIdHandler>();
+
+        services.AddScoped<CreateCustomerHandler>();
+        services.AddScoped<UpdateCustomerHandler>();
+        services.AddScoped<DeactivateCustomerHandler>();
+        services.AddScoped<GetCustomersPagedHandler>();
+        services.AddScoped<GetCustomerByIdHandler>();
+
+        services.AddScoped<CreateSupplierHandler>();
+        services.AddScoped<UpdateSupplierHandler>();
+        services.AddScoped<DeactivateSupplierHandler>();
+        services.AddScoped<GetSuppliersPagedHandler>();
+        services.AddScoped<GetSupplierByIdHandler>();
+        services.AddScoped<AssignSupplierProductHandler>();
+        services.AddScoped<RemoveSupplierProductHandler>();
+        services.AddScoped<GetSupplierProductsHandler>();
 
         return services;
     }

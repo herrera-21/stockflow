@@ -8,6 +8,9 @@ namespace StockFlow.Domain.Entities;
 /// </summary>
 public class Product
 {
+    // Suppliers that offer this product (many-to-many through ProductSupplier).
+    private readonly List<ProductSupplier> _suppliers = [];
+
     // EF Core materialization constructor.
     private Product()
     {
@@ -74,6 +77,9 @@ public class Product
 
     /// <summary>True when the product is at or below its minimum stock level.</summary>
     public bool HasLowStock => CurrentStock <= MinimumStock;
+
+    /// <summary>Suppliers that offer this product.</summary>
+    public IReadOnlyList<ProductSupplier> Suppliers => _suppliers;
 
     /// <summary>
     /// Creates a new active product with the given opening stock.
@@ -160,6 +166,70 @@ public class Product
 
     /// <summary>Reactivates a previously deactivated product.</summary>
     public void Activate() => IsActive = true;
+
+    /// <summary>
+    /// Adds a supplier to this product or updates the data of an existing association.
+    /// </summary>
+    /// <param name="supplierId">Supplier identifier; cannot be empty.</param>
+    /// <param name="supplierSku">Optional supplier reference.</param>
+    /// <param name="purchasePrice">Optional agreed purchase price; cannot be negative.</param>
+    /// <param name="isPreferred">Whether this supplier becomes the preferred one for the product.</param>
+    /// <exception cref="DomainException">When any invariant is violated.</exception>
+    public void AssignSupplier(Guid supplierId, string? supplierSku, decimal? purchasePrice, bool isPreferred)
+    {
+        var association = _suppliers.FirstOrDefault(s => s.SupplierId == supplierId);
+
+        if (association is null)
+        {
+            association = ProductSupplier.Create(Id, supplierId, supplierSku, purchasePrice);
+            _suppliers.Add(association);
+        }
+        else
+        {
+            association.Update(supplierSku, purchasePrice);
+        }
+
+        if (isPreferred)
+        {
+            SetPreferredSupplier(supplierId);
+        }
+        else
+        {
+            association.SetPreferred(false);
+        }
+    }
+
+    /// <summary>
+    /// Marks the given supplier as the preferred one, clearing the flag from the others. A product
+    /// has at most one preferred supplier.
+    /// </summary>
+    /// <param name="supplierId">Supplier to mark as preferred; must be associated with the product.</param>
+    /// <exception cref="DomainException">When the supplier is not associated with the product.</exception>
+    public void SetPreferredSupplier(Guid supplierId)
+    {
+        if (_suppliers.All(s => s.SupplierId != supplierId))
+        {
+            throw new DomainException("The supplier is not associated with this product.");
+        }
+
+        foreach (var association in _suppliers)
+        {
+            association.SetPreferred(association.SupplierId == supplierId);
+        }
+    }
+
+    /// <summary>
+    /// Removes a supplier from this product. Does nothing when the supplier is not associated.
+    /// </summary>
+    /// <param name="supplierId">Supplier identifier to remove.</param>
+    public void RemoveSupplier(Guid supplierId)
+    {
+        var association = _suppliers.FirstOrDefault(s => s.SupplierId == supplierId);
+        if (association is not null)
+        {
+            _suppliers.Remove(association);
+        }
+    }
 
     // Validates the editable fields shared by Create and Update.
     private static void ValidateEditableData(

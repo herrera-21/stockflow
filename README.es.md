@@ -2,11 +2,8 @@
 
 **[English](README.md) | [Español](README.es.md)**
 
-stockflow es un mini ERP de portafolio: un sistema de gestión comercial para una pequeña empresa,
+stockflow es un mini ERP: un sistema de gestión comercial para una pequeña empresa,
 que modela inventario, compras, ventas y facturación electrónica simulada.
-
-> Diseñé y desarrollé un sistema de gestión comercial para una pequeña empresa, modelando
-> inventario, compras, ventas, facturación y reglas de negocio.
 
 ## Stack
 
@@ -46,6 +43,9 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
 - [Docker](https://docs.docker.com/get-docker/) con Docker Compose, para SQL Server
 
 ## Compilar y ejecutar
+
+No se requiere configuración manual: los ajustes de SQL Server están en `docker-compose.yml` y se
+toman automáticamente.
 
 ```bash
 # 1. Levantar SQL Server (Docker)

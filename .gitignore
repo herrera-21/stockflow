@@ -438,6 +438,9 @@ FodyWeavers.xsd
 # Docker / secrets (*.env already ignored above)
 docker-compose.override.yml
 
+# Claude Code runtime files (skills in .claude/skills/ are tracked)
+.claude/scheduled_tasks.lock
+
 # macOS / OS junk
 .DS_Store
 

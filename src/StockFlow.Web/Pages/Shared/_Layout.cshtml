@@ -1,4 +1,5 @@
 ﻿@using Microsoft.Extensions.Localization
+@using StockFlow.Domain
 @inject IStringLocalizer<SharedResource> Localizer
 <!DOCTYPE html>
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
@@ -32,6 +33,18 @@
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-page="/Products/Index">@Localizer["NavProducts"]</a>
+                            </li>
+                        }
+                        @if (User.IsInRole(ApplicationRoles.Administrator) || User.IsInRole(ApplicationRoles.Salesperson))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Customers/Index">@Localizer["NavCustomers"]</a>
+                            </li>
+                        }
+                        @if (User.IsInRole(ApplicationRoles.Administrator) || User.IsInRole(ApplicationRoles.InventoryManager))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Suppliers/Index">@Localizer["NavSuppliers"]</a>
                             </li>
                         }
                     </ul>

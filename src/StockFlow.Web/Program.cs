@@ -21,11 +21,19 @@ builder.Services.AddRazorPages()
     .AddRazorPagesOptions(options =>
     {
         // Defense in depth: authorization is enforced by convention as well as by attributes, so
-        // pages stay protected even if an attribute is forgotten. Everything under /Products
-        // requires authentication; the management pages additionally require the policy.
+        // pages stay protected even if an attribute is forgotten. Everything under /Products and
+        // /Customers requires authentication; the management pages additionally require a policy.
         options.Conventions.AuthorizeFolder("/Products");
         options.Conventions.AuthorizePage("/Products/Create", Policies.CanManageProducts);
         options.Conventions.AuthorizePage("/Products/Edit", Policies.CanManageProducts);
+
+        options.Conventions.AuthorizeFolder("/Customers");
+        options.Conventions.AuthorizePage("/Customers/Create", Policies.CanManageCustomers);
+        options.Conventions.AuthorizePage("/Customers/Edit", Policies.CanManageCustomers);
+
+        // Suppliers are managed by the same roles as products, so the whole folder requires the
+        // manage-suppliers policy; salespeople have no access at all.
+        options.Conventions.AuthorizeFolder("/Suppliers", Policies.CanManageSuppliers);
     })
     .AddViewLocalization()
     .AddDataAnnotationsLocalization(options =>

@@ -11,6 +11,12 @@ public static class Policies
     /// <summary>Policy name for managing products. Only administrators and inventory managers pass.</summary>
     public const string CanManageProducts = "CanManageProducts";
 
+    /// <summary>Policy name for managing customers. Only administrators and salespeople pass.</summary>
+    public const string CanManageCustomers = "CanManageCustomers";
+
+    /// <summary>Policy name for managing suppliers. Only administrators and inventory managers pass.</summary>
+    public const string CanManageSuppliers = "CanManageSuppliers";
+
     /// <summary>
     /// Registers the application authorization policies.
     /// </summary>
@@ -18,6 +24,14 @@ public static class Policies
     public static void Configure(AuthorizationOptions options)
     {
         options.AddPolicy(CanManageProducts, policy => policy
+            .RequireAuthenticatedUser()
+            .RequireRole(ApplicationRoles.Administrator, ApplicationRoles.InventoryManager));
+
+        options.AddPolicy(CanManageCustomers, policy => policy
+            .RequireAuthenticatedUser()
+            .RequireRole(ApplicationRoles.Administrator, ApplicationRoles.Salesperson));
+
+        options.AddPolicy(CanManageSuppliers, policy => policy
             .RequireAuthenticatedUser()
             .RequireRole(ApplicationRoles.Administrator, ApplicationRoles.InventoryManager));
     }

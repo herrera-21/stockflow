@@ -187,4 +187,133 @@
   <data name="AccessDenied" xml:space="preserve">
     <value>No tienes permiso para acceder a esta página.</value>
   </data>
+  <data name="NavCustomers" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
+  <data name="CustomersTitle" xml:space="preserve">
+    <value>Clientes</value>
+  </data>
+  <data name="NewCustomer" xml:space="preserve">
+    <value>Nuevo cliente</value>
+  </data>
+  <data name="CreateCustomerTitle" xml:space="preserve">
+    <value>Crear cliente</value>
+  </data>
+  <data name="EditCustomerTitle" xml:space="preserve">
+    <value>Editar cliente</value>
+  </data>
+  <data name="CustomerHistoryTitle" xml:space="preserve">
+    <value>Historial de compras</value>
+  </data>
+  <data name="CustomerHistoryPlaceholder" xml:space="preserve">
+    <value>El historial de compras de este cliente estará disponible en la Fase 5 (Ventas).</value>
+  </data>
+  <data name="EmptyCustomers" xml:space="preserve">
+    <value>No hay clientes para mostrar.</value>
+  </data>
+  <data name="SearchCustomersPlaceholder" xml:space="preserve">
+    <value>Buscar por nombre, identificación o correo...</value>
+  </data>
+  <data name="TaxId" xml:space="preserve">
+    <value>Identificación fiscal</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Teléfono</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Historial</value>
+  </data>
+  <data name="CustomerCreated" xml:space="preserve">
+    <value>Cliente creado correctamente.</value>
+  </data>
+  <data name="CustomerUpdated" xml:space="preserve">
+    <value>Cliente actualizado correctamente.</value>
+  </data>
+  <data name="CustomerDeactivated" xml:space="preserve">
+    <value>Cliente desactivado correctamente.</value>
+  </data>
+  <data name="CustomerTaxIdAlreadyExists" xml:space="preserve">
+    <value>Ya existe un cliente con esa identificación fiscal.</value>
+  </data>
+  <data name="CustomerNotFound" xml:space="preserve">
+    <value>Cliente no encontrado.</value>
+  </data>
+  <data name="ValidationEmail" xml:space="preserve">
+    <value>El campo {0} no es una dirección de correo válida.</value>
+  </data>
+  <data name="NavSuppliers" xml:space="preserve">
+    <value>Proveedores</value>
+  </data>
+  <data name="SuppliersTitle" xml:space="preserve">
+    <value>Proveedores</value>
+  </data>
+  <data name="NewSupplier" xml:space="preserve">
+    <value>Nuevo proveedor</value>
+  </data>
+  <data name="CreateSupplierTitle" xml:space="preserve">
+    <value>Crear proveedor</value>
+  </data>
+  <data name="EditSupplierTitle" xml:space="preserve">
+    <value>Editar proveedor</value>
+  </data>
+  <data name="EmptySuppliers" xml:space="preserve">
+    <value>No hay proveedores para mostrar.</value>
+  </data>
+  <data name="SearchSuppliersPlaceholder" xml:space="preserve">
+    <value>Buscar por nombre, identificación, contacto o correo...</value>
+  </data>
+  <data name="ContactName" xml:space="preserve">
+    <value>Contacto</value>
+  </data>
+  <data name="SupplierCreated" xml:space="preserve">
+    <value>Proveedor creado correctamente.</value>
+  </data>
+  <data name="SupplierUpdated" xml:space="preserve">
+    <value>Proveedor actualizado correctamente.</value>
+  </data>
+  <data name="SupplierDeactivated" xml:space="preserve">
+    <value>Proveedor desactivado correctamente.</value>
+  </data>
+  <data name="SupplierTaxIdAlreadyExists" xml:space="preserve">
+    <value>Ya existe un proveedor con esa identificación fiscal.</value>
+  </data>
+  <data name="SupplierNotFound" xml:space="preserve">
+    <value>Proveedor no encontrado.</value>
+  </data>
+  <data name="SupplierProductsTitle" xml:space="preserve">
+    <value>Productos del proveedor</value>
+  </data>
+  <data name="ManageProducts" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="AssignProduct" xml:space="preserve">
+    <value>Asociar producto</value>
+  </data>
+  <data name="SelectProduct" xml:space="preserve">
+    <value>Selecciona un producto</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="SupplierSku" xml:space="preserve">
+    <value>SKU del proveedor</value>
+  </data>
+  <data name="PreferredSupplier" xml:space="preserve">
+    <value>Preferido</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="NoSupplierProducts" xml:space="preserve">
+    <value>Este proveedor no tiene productos asociados.</value>
+  </data>
+  <data name="SupplierProductAssigned" xml:space="preserve">
+    <value>Producto asociado correctamente.</value>
+  </data>
+  <data name="SupplierProductRemoved" xml:space="preserve">
+    <value>Producto quitado correctamente.</value>
+  </data>
 </root>

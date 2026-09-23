@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StockFlow.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using StockFlow.Infrastructure.Persistence;
 namespace StockFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923194304_AddSupplier")]
+    partial class AddSupplier
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -328,32 +331,6 @@ namespace StockFlow.Infrastructure.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("StockFlow.Domain.Entities.ProductSupplier", b =>
-                {
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("SupplierId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsPreferred")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal?>("PurchasePrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("SupplierSku")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("ProductId", "SupplierId");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("ProductSuppliers", (string)null);
-                });
-
             modelBuilder.Entity("StockFlow.Domain.Entities.Supplier", b =>
                 {
                     b.Property<Guid>("Id")
@@ -448,31 +425,6 @@ namespace StockFlow.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("StockFlow.Domain.Entities.ProductSupplier", b =>
-                {
-                    b.HasOne("StockFlow.Domain.Entities.Product", null)
-                        .WithMany("Suppliers")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("StockFlow.Domain.Entities.Supplier", null)
-                        .WithMany("Products")
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("StockFlow.Domain.Entities.Product", b =>
-                {
-                    b.Navigation("Suppliers");
-                });
-
-            modelBuilder.Entity("StockFlow.Domain.Entities.Supplier", b =>
-                {
-                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

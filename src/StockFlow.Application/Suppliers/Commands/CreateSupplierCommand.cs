@@ -1,0 +1,18 @@
+namespace StockFlow.Application.Suppliers.Commands;
+
+/// <summary>
+/// Command that creates a new supplier.
+/// </summary>
+/// <param name="Name">Company name.</param>
+/// <param name="TaxId">Tax identification; must be unique.</param>
+/// <param name="ContactName">Optional contact person name.</param>
+/// <param name="Phone">Optional phone number.</param>
+/// <param name="Email">Optional email address.</param>
+/// <param name="Address">Optional postal address.</param>
+public record CreateSupplierCommand(
+    string Name,
+    string TaxId,
+    string? ContactName,
+    string? Phone,
+    string? Email,
+    string? Address);

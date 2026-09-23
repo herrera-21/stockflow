@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StockFlow.Application/StockFlow.Application.csproj" />
+    <Project Path="src/StockFlow.Domain/StockFlow.Domain.csproj" />
+    <Project Path="src/StockFlow.Infrastructure/StockFlow.Infrastructure.csproj" />
+    <Project Path="src/StockFlow.Web/StockFlow.Web.csproj" />
+  </Folder>
+</Solution>

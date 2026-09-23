@@ -442,3 +442,6 @@ docker-compose.override.yml
 
 # macOS / OS junk
 .DS_Store
+
+# Vendored client-side library source maps (debug-only, not needed at runtime)
+**/wwwroot/lib/**/*.map

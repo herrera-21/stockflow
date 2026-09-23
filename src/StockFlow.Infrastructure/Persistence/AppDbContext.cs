@@ -21,6 +21,15 @@ public class AppDbContext : IdentityDbContext<IdentityUser, IdentityRole, string
     /// <summary>Products set.</summary>
     public DbSet<Product> Products => Set<Product>();
 
+    /// <summary>Customers set.</summary>
+    public DbSet<Customer> Customers => Set<Customer>();
+
+    /// <summary>Suppliers set.</summary>
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+
+    /// <summary>Product-supplier associations set.</summary>
+    public DbSet<ProductSupplier> ProductSuppliers => Set<ProductSupplier>();
+
     /// <summary>
     /// Applies all entity type configurations declared in this assembly.
     /// </summary>

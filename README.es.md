@@ -58,12 +58,25 @@ docker compose up -d
 dotnet restore
 dotnet build
 
-# 3. Aplicar las migraciones de la base de datos
+# 3. Aplicar las migraciones de la base de datos (crea la base de datos, las tablas de
+#    Identity y la tabla __EFMigrationsHistory)
 dotnet ef database update --project src/StockFlow.Infrastructure --startup-project src/StockFlow.Web
 
 # 4. Ejecutar la app web
 dotnet run --project src/StockFlow.Web
 ```
+
+La app escucha por defecto en `http://localhost:5124`. En el primer arranque siembra tres roles
+(`Administrator`, `Salesperson`, `InventoryManager`) y una cuenta de administrador de prueba, ambos
+definidos en `appsettings.Development.json`:
+
+- Correo: `admin@stockflow.local`
+- Contraseña: `Admin#2026`
+
+La interfaz está disponible en español (por defecto) e inglés; usa el selector de idioma en la barra
+de navegación para cambiar. La autenticación usa el login por cookie de ASP.NET Core Identity
+(`HttpOnly`, `SameSite=Lax`), así que refrescar la página mantiene la sesión — no se guarda ningún
+token en `localStorage`/`sessionStorage`.
 
 ## Estructura del proyecto
 
@@ -80,6 +93,6 @@ stockflow/
 
 ## Estado
 
-Configuración del proyecto en progreso. La estructura de la solución, Docker y EF Core
-(`AppDbContext`, connection string, primera migración) ya están listos; sigue Identity y roles. Las
-funcionalidades (inventario, compras, ventas, facturación) aún no están implementadas.
+Configuración del proyecto completa: estructura de la solución, Docker, EF Core y ASP.NET Core
+Identity (roles, cuenta de administrador de prueba, login/logout por cookie, interfaz en español e
+inglés). Las funcionalidades (inventario, compras, ventas, facturación) aún no están implementadas.

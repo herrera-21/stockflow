@@ -1,0 +1,25 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject IStringLocalizer<SharedResource> Localizer
+
+<ul class="navbar-nav">
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item">
+        <span class="nav-link text-dark">@Localizer["WelcomeUser", UserManager.GetUserName(User) ?? string.Empty]</span>
+    </li>
+    <li class="nav-item">
+        <form asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index")" method="post">
+            <button type="submit" class="nav-link btn btn-link text-dark border-0">@Localizer["Logout"]</button>
+        </form>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-page="/Account/Login">@Localizer["Login"]</a>
+    </li>
+}
+</ul>

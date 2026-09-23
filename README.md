@@ -57,12 +57,24 @@ docker compose up -d
 dotnet restore
 dotnet build
 
-# 3. Apply database migrations
+# 3. Apply database migrations (creates the database, the Identity tables and the
+#    __EFMigrationsHistory table)
 dotnet ef database update --project src/StockFlow.Infrastructure --startup-project src/StockFlow.Web
 
 # 4. Run the web app
 dotnet run --project src/StockFlow.Web
 ```
+
+The app listens on `http://localhost:5124` by default. On first run it seeds three roles
+(`Administrator`, `Salesperson`, `InventoryManager`) and a seed admin account, both defined in
+`appsettings.Development.json`:
+
+- Email: `admin@stockflow.local`
+- Password: `Admin#2026`
+
+The UI is available in Spanish (default) and English; use the language selector in the navbar to
+switch. Authentication uses ASP.NET Core Identity's cookie sign-in (HttpOnly, `SameSite=Lax`), so a
+page refresh keeps the session — there is no token stored in `localStorage`/`sessionStorage`.
 
 ## Project structure
 
@@ -79,7 +91,7 @@ stockflow/
 
 ## Status
 
-Project scaffolding in progress. Solution structure, Docker and EF Core (`AppDbContext`, connection
-string, first migration) are wired up; Identity and roles are next. Features (inventory, purchases,
-sales, invoicing) have not been implemented yet.
+Project scaffolding complete: solution structure, Docker, EF Core, and ASP.NET Core Identity (roles,
+a seed admin account, cookie-based login/logout, Spanish/English UI). Features (inventory,
+purchases, sales, invoicing) have not been implemented yet.
 

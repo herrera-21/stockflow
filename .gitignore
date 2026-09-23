@@ -435,9 +435,7 @@ FodyWeavers.xsd
 .vscode/*
 !.vscode/extensions.json
 
-# Docker / secrets
-.env
-*.env
+# Docker / secrets (*.env already ignored above)
 docker-compose.override.yml
 
 # macOS / OS junk

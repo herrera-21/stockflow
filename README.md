@@ -12,6 +12,7 @@ purchases, sales and simulated electronic invoicing.
 - SQL Server (via Docker, `mcr.microsoft.com/mssql/server`, Developer edition)
 - ASP.NET Core Identity
 - Bootstrap
+- htmx (vendored, no npm build step)
 - Docker / Docker Compose
 - xUnit
 
@@ -21,7 +22,7 @@ Modular monolith, single repository, layered from the start:
 
 - `Domain` — entities and business rules (invariants)
 - `Application` — use cases / application services
-- `Infrastructure` — EF Core, repositories, Identity
+- `Infrastructure` — EF Core, persistence, Identity
 - `Web` — Razor Pages, controllers, views
 
 ## Business rules
@@ -35,6 +36,24 @@ Modular monolith, single repository, layered from the start:
   document generated.
 - **Auditing:** critical operations record the user, timestamp, affected entity and relevant
   values.
+
+## Roles
+
+| Capability | Administrator | InventoryManager | Salesperson |
+|---|---|---|---|
+| View products | yes | yes | yes |
+| Create / edit / deactivate products | yes | yes | no |
+| Customers | yes | no | yes |
+| Suppliers | yes | yes | no |
+| Inventory adjustments and movements | yes | yes | no |
+| Purchases | yes | yes | no |
+| Sales | yes | no | yes |
+| Electronic invoicing | yes | no | yes |
+| Dashboard | yes | yes | yes |
+| Users and roles | yes | no | no |
+
+Products are managed through the `CanManageProducts` authorization policy, which grants access only
+to Administrator and InventoryManager; Salesperson has read-only access to the catalog.
 
 ## Requirements
 
@@ -76,6 +95,25 @@ The UI is available in Spanish (default) and English; use the language selector 
 switch. Authentication uses ASP.NET Core Identity's cookie sign-in (HttpOnly, `SameSite=Lax`), so a
 page refresh keeps the session — there is no token stored in `localStorage`/`sessionStorage`.
 
+## Tests
+
+The test suite is split by layer:
+
+- `tests/StockFlow.Domain.Tests` — domain invariants (unit).
+- `tests/StockFlow.Application.Tests` — use case handlers (unit, EF Core InMemory).
+- `tests/StockFlow.Web.Tests` — full HTTP flow (integration). They boot the real app and exercise
+  the SQL Server from `docker-compose.yml`, isolated in their own `StockFlowDb_Test` database.
+
+```bash
+# Run every test
+dotnet test
+
+# Run a single test
+dotnet test --filter "FullyQualifiedName~StockFlow.Domain.Tests.Entities.ProductTests"
+```
+
+Integration tests require the SQL Server container to be running (`docker compose up -d`).
+
 ## Project structure
 
 ```text
@@ -85,13 +123,16 @@ stockflow/
 └── src/
     ├── StockFlow.Domain/          # Entities and business rules
     ├── StockFlow.Application/     # Use cases / application services
-    ├── StockFlow.Infrastructure/  # EF Core, repositories, Identity
+    ├── StockFlow.Infrastructure/  # EF Core, persistence, Identity
     └── StockFlow.Web/             # Razor Pages, controllers, views
 ```
 
 ## Status
 
-Project scaffolding complete: solution structure, Docker, EF Core, and ASP.NET Core Identity (roles,
-a seed admin account, cookie-based login/logout, Spanish/English UI). Features (inventory,
-purchases, sales, invoicing) have not been implemented yet.
+Phase 1 (products) is functionally complete: the product model, EF Core mapping and migration, the
+CRUD (list with pagination, create, edit, soft-delete) with role-based access, and live
+search/filtering by name, SKU and category are implemented. Search, filtering, pagination and
+product deactivation run over htmx (vendored in `wwwroot/lib/htmx`, no npm build step), without full
+page reloads, and are covered by unit and integration tests. Inventory, purchases, sales and
+invoicing are not implemented yet.
 

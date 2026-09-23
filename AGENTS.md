@@ -15,7 +15,8 @@ If it conflicts with build/test config, trust the config and update this file.
 ## Hard rules
 
 - No emojis anywhere: code, comments, docs, UI text, commit messages.
-- All code comments are written in English. Documentation is bilingual (English + Spanish).
+- All code comments are written in English. Documentation is bilingual (English + Spanish); see
+  Documentation below for the per-member convention.
 - Respect clean architecture boundaries. Never add a project reference that violates them.
 - Use DTOs for data crossing layer or API boundaries; never leak domain entities into the Web layer.
 - The project must run right after cloning with only `docker compose up -d` and `dotnet run`; no
@@ -24,6 +25,18 @@ If it conflicts with build/test config, trust the config and update this file.
 - Every feature ships with unit tests and integration tests.
 - Never run `git commit` or `git push` unless the user explicitly asks for it in that message.
 - End every reply to the user with exactly: This is the way
+
+## Documentation
+
+- Document every `public` and `protected` member with XML doc comments (`///`): `<summary>`, plus
+  `<param>`, `<typeparam>` and `<returns>` where they apply. This includes types, methods, properties,
+  constructors, constants and positional record parameters.
+- Use plain `//` comments for private members, trivial properties and non-obvious intent (business
+  rules, gotchas, rationale).
+- Tests follow the same split: XML docs on the test class and each test method; `//` for helpers and
+  the Arrange/Act/Assert sections.
+- Generated EF Core migrations and `*.Designer.cs` files are exempt; never hand-edit them.
+- Top-level statements (`Program.cs`) cannot carry XML docs, so document them with `//`.
 
 ## Architecture
 

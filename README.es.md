@@ -12,6 +12,7 @@ que modela inventario, compras, ventas y facturación electrónica simulada.
 - SQL Server (vía Docker, `mcr.microsoft.com/mssql/server`, edición Developer)
 - ASP.NET Core Identity
 - Bootstrap
+- htmx (vendorizado, sin paso de build npm)
 - Docker / Docker Compose
 - xUnit
 
@@ -21,7 +22,7 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
 
 - `Domain` — entidades y reglas de negocio (invariantes)
 - `Application` — casos de uso / servicios de aplicación
-- `Infrastructure` — EF Core, repositorios, Identity
+- `Infrastructure` — EF Core, persistencia, Identity
 - `Web` — Razor Pages, controllers, vistas
 
 ## Reglas de negocio
@@ -36,6 +37,24 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
   nuevo documento.
 - **Auditoría:** las operaciones críticas registran usuario, timestamp, entidad afectada y valores
   relevantes.
+
+## Roles
+
+| Capacidad | Administrator | InventoryManager | Salesperson |
+|---|---|---|---|
+| Ver productos | sí | sí | sí |
+| Crear / editar / desactivar productos | sí | sí | no |
+| Clientes | sí | no | sí |
+| Proveedores | sí | sí | no |
+| Ajustes y movimientos de inventario | sí | sí | no |
+| Compras | sí | sí | no |
+| Ventas | sí | no | sí |
+| Facturación electrónica | sí | no | sí |
+| Dashboard | sí | sí | sí |
+| Usuarios y roles | sí | no | no |
+
+Los productos se gestionan mediante la política de autorización `CanManageProducts`, que da acceso
+solo a Administrator e InventoryManager; Salesperson tiene acceso de solo lectura al catálogo.
 
 ## Requisitos
 
@@ -78,6 +97,25 @@ de navegación para cambiar. La autenticación usa el login por cookie de ASP.NE
 (`HttpOnly`, `SameSite=Lax`), así que refrescar la página mantiene la sesión — no se guarda ningún
 token en `localStorage`/`sessionStorage`.
 
+## Tests
+
+La suite de pruebas está separada por capa:
+
+- `tests/StockFlow.Domain.Tests` — invariantes del dominio (unitarias).
+- `tests/StockFlow.Application.Tests` — casos de uso / handlers (unitarias, EF Core InMemory).
+- `tests/StockFlow.Web.Tests` — flujo HTTP completo (integración). Levantan la app real y usan el
+  SQL Server de `docker-compose.yml`, aislado en su propia base de datos `StockFlowDb_Test`.
+
+```bash
+# Ejecutar todas las pruebas
+dotnet test
+
+# Ejecutar una prueba concreta
+dotnet test --filter "FullyQualifiedName~StockFlow.Domain.Tests.Entities.ProductTests"
+```
+
+Las pruebas de integración requieren el contenedor de SQL Server levantado (`docker compose up -d`).
+
 ## Estructura del proyecto
 
 ```text
@@ -87,12 +125,15 @@ stockflow/
 └── src/
     ├── StockFlow.Domain/          # Entidades y reglas de negocio
     ├── StockFlow.Application/     # Casos de uso / servicios de aplicación
-    ├── StockFlow.Infrastructure/  # EF Core, repositorios, Identity
+    ├── StockFlow.Infrastructure/  # EF Core, persistencia, Identity
     └── StockFlow.Web/             # Razor Pages, controllers, vistas
 ```
 
 ## Estado
 
-Configuración del proyecto completa: estructura de la solución, Docker, EF Core y ASP.NET Core
-Identity (roles, cuenta de administrador de prueba, login/logout por cookie, interfaz en español e
-inglés). Las funcionalidades (inventario, compras, ventas, facturación) aún no están implementadas.
+La Fase 1 (productos) está funcionalmente completa: el modelo de producto, el mapeo EF Core y la
+migración, el CRUD (listado con paginación, crear, editar, baja lógica) con acceso por rol, y la
+búsqueda y el filtrado en vivo por nombre, SKU y categoría están implementados. La búsqueda, el
+filtrado, la paginación y la desactivación de productos funcionan con htmx (vendorizado en
+`wwwroot/lib/htmx`, sin paso de build npm), sin recargar la página, y están cubiertos por pruebas
+unitarias y de integración. Inventario, compras, ventas y facturación aún no están implementados.

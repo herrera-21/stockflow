@@ -22,6 +22,7 @@ If it conflicts with build/test config, trust the config and update this file.
   manual configuration (no `.env`, connection data comes from `docker-compose.yml`).
 - The app must be internationalized (i18n) with a visible language selector; never hardcode UI strings.
 - Every feature ships with unit tests and integration tests.
+- Never run `git commit` or `git push` unless the user explicitly asks for it in that message.
 - End every reply to the user with exactly: This is the way
 
 ## Architecture
@@ -41,7 +42,8 @@ existing `Class1.cs` files are placeholders.
 
 Run from the repository root.
 
-- Start database: `docker compose up -d` (SQL Server 2022 Developer, port 1433).
+- Start database: `docker compose up -d` (SQL Server 2022 Developer, host port 14330 -> container 1433;
+  14330 avoids clashing with a local SQL Server instance already using 1433 on some machines).
 - Restore and build: `dotnet restore` then `dotnet build`.
 - Run the web app: `dotnet run --project src/StockFlow.Web`.
 - Run all tests: `dotnet test`.

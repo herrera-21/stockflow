@@ -40,11 +40,14 @@ Modular monolith, single repository, layered from the start:
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download)
 - [Docker](https://docs.docker.com/get-docker/) with Docker Compose, for SQL Server
+- [EF Core CLI tools](https://learn.microsoft.com/ef/core/cli/dotnet)
+  (`dotnet tool install --global dotnet-ef`), only needed to add or apply migrations
 
 ## Build and run
 
 No manual configuration is required: the SQL Server settings live in `docker-compose.yml` and are
-picked up automatically.
+picked up automatically. SQL Server listens on host port `14330` (not the default `1433`), to avoid
+clashing with a local SQL Server instance that might already be using it on your machine.
 
 ```bash
 # 1. Start SQL Server (Docker)
@@ -54,7 +57,10 @@ docker compose up -d
 dotnet restore
 dotnet build
 
-# 3. Run the web app
+# 3. Apply database migrations
+dotnet ef database update --project src/StockFlow.Infrastructure --startup-project src/StockFlow.Web
+
+# 4. Run the web app
 dotnet run --project src/StockFlow.Web
 ```
 
@@ -73,6 +79,7 @@ stockflow/
 
 ## Status
 
-Project scaffolding in progress (solution structure, Docker, EF Core, Identity). Features
-(inventory, purchases, sales, invoicing) have not been implemented yet.
+Project scaffolding in progress. Solution structure, Docker and EF Core (`AppDbContext`, connection
+string, first migration) are wired up; Identity and roles are next. Features (inventory, purchases,
+sales, invoicing) have not been implemented yet.
 

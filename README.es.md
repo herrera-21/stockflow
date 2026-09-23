@@ -41,11 +41,14 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download)
 - [Docker](https://docs.docker.com/get-docker/) con Docker Compose, para SQL Server
+- [Herramientas CLI de EF Core](https://learn.microsoft.com/ef/core/cli/dotnet)
+  (`dotnet tool install --global dotnet-ef`), solo necesarias para crear o aplicar migraciones
 
 ## Compilar y ejecutar
 
 No se requiere configuración manual: los ajustes de SQL Server están en `docker-compose.yml` y se
-toman automáticamente.
+toman automáticamente. SQL Server escucha en el puerto `14330` del host (no el `1433` por defecto),
+para evitar chocar con una instancia local de SQL Server que ya podría estar usándolo en tu máquina.
 
 ```bash
 # 1. Levantar SQL Server (Docker)
@@ -55,7 +58,10 @@ docker compose up -d
 dotnet restore
 dotnet build
 
-# 3. Ejecutar la app web
+# 3. Aplicar las migraciones de la base de datos
+dotnet ef database update --project src/StockFlow.Infrastructure --startup-project src/StockFlow.Web
+
+# 4. Ejecutar la app web
 dotnet run --project src/StockFlow.Web
 ```
 
@@ -74,5 +80,6 @@ stockflow/
 
 ## Estado
 
-Configuración del proyecto en progreso (estructura de la solución, Docker, EF Core, Identity). Las
+Configuración del proyecto en progreso. La estructura de la solución, Docker y EF Core
+(`AppDbContext`, connection string, primera migración) ya están listos; sigue Identity y roles. Las
 funcionalidades (inventario, compras, ventas, facturación) aún no están implementadas.

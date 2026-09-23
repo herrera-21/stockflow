@@ -1,0 +1,37 @@
+@model StockFlow.Web.Pages.Customers.CustomerRowViewModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+<tr id="customer-row-@Model.Customer.Id">
+    <td>@Model.Customer.Name</td>
+    <td>@Model.Customer.TaxId</td>
+    <td>@Model.Customer.Phone</td>
+    <td>@Model.Customer.Email</td>
+    <td>
+        @if (Model.Customer.IsActive)
+        {
+            <span class="badge bg-success">@Localizer["ActiveStatus"]</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary">@Localizer["InactiveStatus"]</span>
+        }
+    </td>
+    <td class="text-end">
+        <a asp-page="History" asp-route-id="@Model.Customer.Id" class="btn btn-sm btn-outline-info">@Localizer["History"]</a>
+        <a asp-page="Edit" asp-route-id="@Model.Customer.Id" class="btn btn-sm btn-outline-secondary">@Localizer["Edit"]</a>
+        @if (Model.Customer.IsActive)
+        {
+            <form method="post"
+                  asp-page-handler="Deactivate"
+                  asp-route-id="@Model.Customer.Id"
+                  asp-route-pageNumber="@Model.PageNumber"
+                  asp-route-search="@Model.Search"
+                  hx-post="@Url.Page("/Customers/Index", "Deactivate", new { id = Model.Customer.Id, pageNumber = Model.PageNumber, search = Model.Search })"
+                  hx-target="#customer-row-@Model.Customer.Id"
+                  hx-swap="outerHTML"
+                  class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-danger">@Localizer["Deactivate"]</button>
+            </form>
+        }
+    </td>
+</tr>

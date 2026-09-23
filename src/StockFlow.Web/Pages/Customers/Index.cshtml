@@ -1,0 +1,27 @@
+@page
+@model StockFlow.Web.Pages.Customers.IndexModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["CustomersTitle"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@Localizer["CustomersTitle"]</h1>
+    <a asp-page="Create" class="btn btn-primary">@Localizer["NewCustomer"]</a>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-8">
+        <input type="search" id="customer-search" name="search" value="@Model.Search" class="form-control"
+               placeholder="@Localizer["SearchCustomersPlaceholder"]"
+               hx-get="@Url.Page("/Customers/Index", "Rows")"
+               hx-trigger="keyup changed delay:300ms, search"
+               hx-target="#customers-container"
+               hx-swap="innerHTML" />
+    </div>
+</div>
+
+<div id="customers-container">
+    <partial name="_CustomersTable" model="Model" />
+</div>

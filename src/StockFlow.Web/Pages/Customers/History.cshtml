@@ -1,0 +1,47 @@
+@page "{id:guid}"
+@model StockFlow.Web.Pages.Customers.HistoryModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["CustomerHistoryTitle"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@Localizer["CustomerHistoryTitle"]</h1>
+    <a asp-page="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">@Model.Customer.Name</div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">@Localizer["TaxId"]</dt>
+            <dd class="col-sm-9">@Model.Customer.TaxId</dd>
+
+            <dt class="col-sm-3">@Localizer["Phone"]</dt>
+            <dd class="col-sm-9">@Model.Customer.Phone</dd>
+
+            <dt class="col-sm-3">@Localizer["Email"]</dt>
+            <dd class="col-sm-9">@Model.Customer.Email</dd>
+
+            <dt class="col-sm-3">@Localizer["Address"]</dt>
+            <dd class="col-sm-9">@Model.Customer.Address</dd>
+
+            <dt class="col-sm-3">@Localizer["Status"]</dt>
+            <dd class="col-sm-9">
+                @if (Model.Customer.IsActive)
+                {
+                    <span class="badge bg-success">@Localizer["ActiveStatus"]</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">@Localizer["InactiveStatus"]</span>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="alert alert-info" role="alert">
+    @Localizer["CustomerHistoryPlaceholder"]
+</div>

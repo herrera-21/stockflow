@@ -1,0 +1,56 @@
+@page
+@model StockFlow.Web.Pages.Customers.CreateModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["CreateCustomerTitle"];
+}
+
+<h1>@Localizer["CreateCustomerTitle"]</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.Name" class="form-label"></label>
+                    <input asp-for="Input.Name" class="form-control" />
+                    <span asp-validation-for="Input.Name" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.TaxId" class="form-label"></label>
+                    <input asp-for="Input.TaxId" class="form-control" />
+                    <span asp-validation-for="Input.TaxId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.Phone" class="form-label"></label>
+                    <input asp-for="Input.Phone" class="form-control" />
+                    <span asp-validation-for="Input.Phone" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <input asp-for="Input.Email" class="form-control" />
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Address" class="form-label"></label>
+                <textarea asp-for="Input.Address" class="form-control" rows="2"></textarea>
+                <span asp-validation-for="Input.Address" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+            <a asp-page="Index" class="btn btn-outline-secondary">@Localizer["Cancel"]</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

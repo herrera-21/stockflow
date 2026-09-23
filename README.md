@@ -53,7 +53,9 @@ Modular monolith, single repository, layered from the start:
 | Users and roles | yes | no | no |
 
 Products are managed through the `CanManageProducts` authorization policy, which grants access only
-to Administrator and InventoryManager; Salesperson has read-only access to the catalog.
+to Administrator and InventoryManager; Salesperson has read-only access to the catalog. Customers
+and suppliers use the `CanManageCustomers` (Administrator, Salesperson) and `CanManageSuppliers`
+(Administrator, InventoryManager) policies respectively.
 
 ## Requirements
 
@@ -129,10 +131,18 @@ stockflow/
 
 ## Status
 
-Phase 1 (products) is functionally complete: the product model, EF Core mapping and migration, the
-CRUD (list with pagination, create, edit, soft-delete) with role-based access, and live
-search/filtering by name, SKU and category are implemented. Search, filtering, pagination and
-product deactivation run over htmx (vendored in `wwwroot/lib/htmx`, no npm build step), without full
-page reloads, and are covered by unit and integration tests. Inventory, purchases, sales and
-invoicing are not implemented yet.
+Phases 1 (products) and 2 (customers and suppliers) are functionally complete.
+
+- **Products:** model, EF Core mapping and migration, CRUD (list with pagination, create, edit,
+  soft-delete) with role-based access, live search/filtering by name, SKU and category, and a
+  low-stock indicator.
+- **Customers:** model, EF Core mapping and migration, CRUD with role-based access, live search by
+  name, tax id or email, and a purchase-history placeholder (until Phase 5, Sales).
+- **Suppliers:** model, EF Core mapping and migration, CRUD with role-based access, live search, and
+  a many-to-many association of products to suppliers that stores the supplier's SKU, the agreed
+  purchase price and a single preferred supplier per product.
+
+Search, filtering, pagination and soft deletes run over htmx (vendored in `wwwroot/lib/htmx`, no npm
+build step), without full page reloads, and are covered by unit and integration tests. Inventory,
+purchases, sales and invoicing are not implemented yet.
 

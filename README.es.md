@@ -54,7 +54,9 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
 | Usuarios y roles | sí | no | no |
 
 Los productos se gestionan mediante la política de autorización `CanManageProducts`, que da acceso
-solo a Administrator e InventoryManager; Salesperson tiene acceso de solo lectura al catálogo.
+solo a Administrator e InventoryManager; Salesperson tiene acceso de solo lectura al catálogo. Los
+clientes y los proveedores usan las políticas `CanManageCustomers` (Administrator, Salesperson) y
+`CanManageSuppliers` (Administrator, InventoryManager) respectivamente.
 
 ## Requisitos
 
@@ -131,9 +133,18 @@ stockflow/
 
 ## Estado
 
-La Fase 1 (productos) está funcionalmente completa: el modelo de producto, el mapeo EF Core y la
-migración, el CRUD (listado con paginación, crear, editar, baja lógica) con acceso por rol, y la
-búsqueda y el filtrado en vivo por nombre, SKU y categoría están implementados. La búsqueda, el
-filtrado, la paginación y la desactivación de productos funcionan con htmx (vendorizado en
+Las Fases 1 (productos) y 2 (clientes y proveedores) están funcionalmente completas.
+
+- **Productos:** modelo, mapeo EF Core y migración, CRUD (listado con paginación, crear, editar, baja
+  lógica) con acceso por rol, búsqueda y filtrado en vivo por nombre, SKU y categoría, e indicador de
+  stock bajo.
+- **Clientes:** modelo, mapeo EF Core y migración, CRUD con acceso por rol, búsqueda en vivo por
+  nombre, identificación fiscal o correo, y un marcador de historial de compras (hasta la Fase 5,
+  Ventas).
+- **Proveedores:** modelo, mapeo EF Core y migración, CRUD con acceso por rol, búsqueda en vivo, y una
+  asociación muchos-a-muchos de productos a proveedores que guarda el SKU del proveedor, el precio de
+  compra acordado y un único proveedor preferido por producto.
+
+La búsqueda, el filtrado, la paginación y las bajas lógicas funcionan con htmx (vendorizado en
 `wwwroot/lib/htmx`, sin paso de build npm), sin recargar la página, y están cubiertos por pruebas
 unitarias y de integración. Inventario, compras, ventas y facturación aún no están implementados.

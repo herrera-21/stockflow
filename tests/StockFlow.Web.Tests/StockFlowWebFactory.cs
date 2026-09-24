@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StockFlow.Domain;
 using StockFlow.Infrastructure.Persistence;
 
 namespace StockFlow.Web.Tests;
@@ -24,6 +25,18 @@ public class StockFlowWebFactory : WebApplicationFactory<Program>, IAsyncLifetim
     /// <summary>Password of the seeded administrator used by the tests.</summary>
     public const string AdminPassword = "Admin#2026";
 
+    /// <summary>Email of the seeded inventory manager used by the tests.</summary>
+    public const string InventoryEmail = "inventory@stockflow.local";
+
+    /// <summary>Password of the seeded inventory manager used by the tests.</summary>
+    public const string InventoryPassword = "Inventory#2026";
+
+    /// <summary>Email of the seeded salesperson used by the tests.</summary>
+    public const string SalesEmail = "sales@stockflow.local";
+
+    /// <summary>Password of the seeded salesperson used by the tests.</summary>
+    public const string SalesPassword = "Sales#2026";
+
     /// <summary>Overrides the host configuration so tests use the test database and seed admin.</summary>
     /// <param name="builder">Host builder supplied by the test framework.</param>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -34,8 +47,15 @@ public class StockFlowWebFactory : WebApplicationFactory<Program>, IAsyncLifetim
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = ConnectionString,
-                ["SeedAdmin:Email"] = AdminEmail,
-                ["SeedAdmin:Password"] = AdminPassword
+                ["SeedUsers:0:Email"] = AdminEmail,
+                ["SeedUsers:0:Password"] = AdminPassword,
+                ["SeedUsers:0:Role"] = ApplicationRoles.Administrator,
+                ["SeedUsers:1:Email"] = InventoryEmail,
+                ["SeedUsers:1:Password"] = InventoryPassword,
+                ["SeedUsers:1:Role"] = ApplicationRoles.InventoryManager,
+                ["SeedUsers:2:Email"] = SalesEmail,
+                ["SeedUsers:2:Password"] = SalesPassword,
+                ["SeedUsers:2:Role"] = ApplicationRoles.Salesperson
             });
         });
     }

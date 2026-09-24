@@ -1,4 +1,5 @@
 using StockFlow.Application.Customers.Queries;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Customers;
@@ -9,9 +10,9 @@ namespace StockFlow.Application.Tests.Customers;
 /// </summary>
 public class GetCustomersPagedHandlerTests
 {
-    // Builds a customer whose name is used as tax id unless one is provided.
-    private static Customer NewCustomer(string name, string? taxId = null, string? email = null) =>
-        Customer.Create(name, taxId ?? name, null, email, null);
+    // Builds a customer with a valid DUI, letting each test override name, document or email.
+    private static Customer NewCustomer(string name, string taxId = "01234567-8", string? email = null) =>
+        Customer.Create(name, DocumentType.Dui, taxId, null, email, null);
 
     /// <summary>The requested page is ordered by name and reports the correct paging metadata.</summary>
     [Fact]
@@ -19,7 +20,10 @@ public class GetCustomersPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        db.Customers.AddRange(NewCustomer("C customer"), NewCustomer("A customer"), NewCustomer("B customer"));
+        db.Customers.AddRange(
+            NewCustomer("C customer", "00000003-3"),
+            NewCustomer("A customer", "00000001-1"),
+            NewCustomer("B customer", "00000002-2"));
         await db.SaveChangesAsync();
 
         var handler = new GetCustomersPagedHandler(db);
@@ -43,7 +47,10 @@ public class GetCustomersPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        db.Customers.AddRange(NewCustomer("A customer"), NewCustomer("B customer"), NewCustomer("C customer"));
+        db.Customers.AddRange(
+            NewCustomer("A customer", "00000001-1"),
+            NewCustomer("B customer", "00000002-2"),
+            NewCustomer("C customer", "00000003-3"));
         await db.SaveChangesAsync();
 
         var handler = new GetCustomersPagedHandler(db);
@@ -65,9 +72,9 @@ public class GetCustomersPagedHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Customers.AddRange(
-            NewCustomer("Acme Corporation"),
-            NewCustomer("Globex"),
-            NewCustomer("Initech"));
+            NewCustomer("Acme Corporation", "00000001-1"),
+            NewCustomer("Globex", "00000002-2"),
+            NewCustomer("Initech", "00000003-3"));
         await db.SaveChangesAsync();
 
         var handler = new GetCustomersPagedHandler(db);
@@ -80,21 +87,21 @@ public class GetCustomersPagedHandlerTests
         Assert.Equal("Acme Corporation", result.Items[0].Name);
     }
 
-    /// <summary>Search matches the tax identification case-insensitively.</summary>
+    /// <summary>Search matches the document number.</summary>
     [Fact]
     public async Task HandleAsync_FiltersByTaxId()
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Customers.AddRange(
-            NewCustomer("Acme", taxId: "3-101-AAAA"),
-            NewCustomer("Globex", taxId: "3-101-BBBB"));
+            NewCustomer("Acme", "01234567-8"),
+            NewCustomer("Globex", "08765432-1"));
         await db.SaveChangesAsync();
 
         var handler = new GetCustomersPagedHandler(db);
 
         // Act
-        var result = await handler.HandleAsync(new GetCustomersPagedQuery(1, 10, Search: "bbbb"));
+        var result = await handler.HandleAsync(new GetCustomersPagedQuery(1, 10, Search: "8765"));
 
         // Assert
         Assert.Single(result.Items);
@@ -108,9 +115,9 @@ public class GetCustomersPagedHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Customers.AddRange(
-            NewCustomer("Acme", email: "billing@acme.test"),
-            NewCustomer("Globex", email: "contact@globex.test"),
-            NewCustomer("NoEmail", taxId: "3-101-CCCC"));
+            NewCustomer("Acme", "00000001-1", "billing@acme.test"),
+            NewCustomer("Globex", "00000002-2", "contact@globex.test"),
+            NewCustomer("NoEmail", "00000003-3"));
         await db.SaveChangesAsync();
 
         var handler = new GetCustomersPagedHandler(db);
@@ -150,10 +157,10 @@ public class GetCustomersPagedHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Customers.AddRange(
-            NewCustomer("Widget A"),
-            NewCustomer("Widget B"),
-            NewCustomer("Widget C"),
-            NewCustomer("Other"));
+            NewCustomer("Widget A", "00000001-1"),
+            NewCustomer("Widget B", "00000002-2"),
+            NewCustomer("Widget C", "00000003-3"),
+            NewCustomer("Other", "00000004-4"));
         await db.SaveChangesAsync();
 
         var handler = new GetCustomersPagedHandler(db);

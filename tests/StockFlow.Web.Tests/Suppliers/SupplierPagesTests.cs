@@ -79,6 +79,7 @@ public class SupplierPagesTests
         var response = await client.PostAsync("/Suppliers/Create", Form(new Dictionary<string, string>
         {
             ["Input.Name"] = "Integration supplier",
+            ["Input.DocumentType"] = "Dui",
             ["Input.TaxId"] = taxId,
             ["Input.ContactName"] = "Jane Doe",
             ["Input.Phone"] = "8888-8888",
@@ -98,6 +99,32 @@ public class SupplierPagesTests
         Assert.True(supplier.IsActive);
     }
 
+    /// <summary>An invalid contact name shows a localized message instead of the resource key.</summary>
+    [Fact]
+    public async Task Create_WithInvalidContactName_ShowsLocalizedMessage()
+    {
+        // Arrange
+        var client = await AdminClientAsync();
+        var token = await GetAntiforgeryTokenAsync(client, "/Suppliers/Create");
+
+        // Act
+        var response = await client.PostAsync("/Suppliers/Create", Form(new Dictionary<string, string>
+        {
+            ["Input.Name"] = "Acme Supplies",
+            ["Input.DocumentType"] = "Dui",
+            ["Input.TaxId"] = NewTaxId(),
+            ["Input.ContactName"] = "Jane 123",
+            ["__RequestVerificationToken"] = token
+        }));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var html = await response.Content.ReadAsStringAsync();
+        Assert.Contains("solo admite letras", html);
+        Assert.DoesNotContain("ValidationPersonName", html);
+    }
+
     /// <summary>Creating with a duplicate tax id re-renders the form and does not persist.</summary>
     [Fact]
     public async Task Create_WithDuplicateTaxId_ShowsErrorAndDoesNotPersist()
@@ -107,7 +134,7 @@ public class SupplierPagesTests
         var taxId = NewTaxId();
         await using (var seedDb = _factory.CreateDbContext())
         {
-            seedDb.Suppliers.Add(Supplier.Create("Existing", taxId, null, null, null, null));
+            seedDb.Suppliers.Add(Supplier.Create("Existing", DocumentType.Dui, taxId, null, null, null, null));
             await seedDb.SaveChangesAsync();
         }
 
@@ -117,6 +144,7 @@ public class SupplierPagesTests
         var response = await client.PostAsync("/Suppliers/Create", Form(new Dictionary<string, string>
         {
             ["Input.Name"] = "Duplicate",
+            ["Input.DocumentType"] = "Dui",
             ["Input.TaxId"] = taxId,
             ["__RequestVerificationToken"] = token
         }));
@@ -138,7 +166,7 @@ public class SupplierPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var supplier = Supplier.Create("Before", taxId, null, null, null, null);
+            var supplier = Supplier.Create("Before", DocumentType.Dui, taxId, null, null, null, null);
             seedDb.Suppliers.Add(supplier);
             await seedDb.SaveChangesAsync();
             id = supplier.Id;
@@ -151,6 +179,7 @@ public class SupplierPagesTests
         {
             ["Input.Id"] = id.ToString(),
             ["Input.Name"] = "After",
+            ["Input.DocumentType"] = "Dui",
             ["Input.TaxId"] = taxId,
             ["Input.ContactName"] = "John Roe",
             ["Input.Phone"] = "7777-7777",
@@ -180,7 +209,7 @@ public class SupplierPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var supplier = Supplier.Create("To deactivate", NewTaxId(), null, null, null, null);
+            var supplier = Supplier.Create("To deactivate", DocumentType.Dui, NewTaxId(), null, null, null, null);
             seedDb.Suppliers.Add(supplier);
             await seedDb.SaveChangesAsync();
             id = supplier.Id;
@@ -212,7 +241,7 @@ public class SupplierPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var supplier = Supplier.Create("Protected", NewTaxId(), null, null, null, null);
+            var supplier = Supplier.Create("Protected", DocumentType.Dui, NewTaxId(), null, null, null, null);
             seedDb.Suppliers.Add(supplier);
             await seedDb.SaveChangesAsync();
             id = supplier.Id;
@@ -234,7 +263,11 @@ public class SupplierPagesTests
     }
 
     // Generates a unique tax id so tests do not collide on the unique index.
-    private static string NewTaxId() => $"IT-{Guid.NewGuid().ToString("N")[..8]}";
+    private static string NewTaxId()
+    {
+        var number = BitConverter.ToUInt32(Guid.NewGuid().ToByteArray(), 0) % 100_000_000;
+        return $"{number:D8}-{number % 10}";
+    }
 
     // Wraps the form fields as URL-encoded content.
     private static FormUrlEncodedContent Form(Dictionary<string, string> fields) => new(fields);

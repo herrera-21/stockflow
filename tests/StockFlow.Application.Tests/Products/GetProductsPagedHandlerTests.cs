@@ -1,6 +1,6 @@
-using StockFlow.Application.Products;
 using StockFlow.Application.Products.Queries;
 using StockFlow.Domain.Entities;
+using StockFlow.Domain;
 
 namespace StockFlow.Application.Tests.Products;
 
@@ -11,8 +11,8 @@ namespace StockFlow.Application.Tests.Products;
 public class GetProductsPagedHandlerTests
 {
     // Builds a product whose name is used as SKU unless one is provided.
-    private static Product NewProduct(string name, string? sku = null, string category = "General") =>
-        Product.Create(sku ?? name, name, null, category, 10m, 15m, 13m, 5, 2);
+    private static Product NewProduct(Guid categoryId, string name, string? sku = null) =>
+        Product.Create(sku ?? name, name, null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
 
     /// <summary>The requested page is ordered by name and reports the correct paging metadata.</summary>
     [Fact]
@@ -20,7 +20,11 @@ public class GetProductsPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        db.Products.AddRange(NewProduct("C product"), NewProduct("A product"), NewProduct("B product"));
+        var categoryId = db.Categories.First().Id;
+        db.Products.AddRange(
+            NewProduct(categoryId, "C product"),
+            NewProduct(categoryId, "A product"),
+            NewProduct(categoryId, "B product"));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
@@ -44,7 +48,11 @@ public class GetProductsPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        db.Products.AddRange(NewProduct("A product"), NewProduct("B product"), NewProduct("C product"));
+        var categoryId = db.Categories.First().Id;
+        db.Products.AddRange(
+            NewProduct(categoryId, "A product"),
+            NewProduct(categoryId, "B product"),
+            NewProduct(categoryId, "C product"));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
@@ -65,7 +73,8 @@ public class GetProductsPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        db.Products.Add(Product.Create("SKU-001", "Low", null, "General", 10m, 15m, 13m, 1, 2));
+        var categoryId = db.Categories.First().Id;
+        db.Products.Add(Product.Create("SKU-001", "Low", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 2));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
@@ -83,10 +92,11 @@ public class GetProductsPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
+        var categoryId = db.Categories.First().Id;
         db.Products.AddRange(
-            NewProduct("Wireless mouse"),
-            NewProduct("Wired keyboard"),
-            NewProduct("Monitor"));
+            NewProduct(categoryId, "Wireless mouse"),
+            NewProduct(categoryId, "Wired keyboard"),
+            NewProduct(categoryId, "Monitor"));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
@@ -105,9 +115,10 @@ public class GetProductsPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
+        var categoryId = db.Categories.First().Id;
         db.Products.AddRange(
-            NewProduct("Mouse", sku: "SKU-AAA-001"),
-            NewProduct("Keyboard", sku: "SKU-BBB-002"));
+            NewProduct(categoryId, "Mouse", sku: "SKU-AAA-001"),
+            NewProduct(categoryId, "Keyboard", sku: "SKU-BBB-002"));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
@@ -120,26 +131,28 @@ public class GetProductsPagedHandlerTests
         Assert.Equal("Keyboard", result.Items[0].Name);
     }
 
-    /// <summary>The category filter matches case-insensitively.</summary>
+    /// <summary>The category filter returns only the products of that category.</summary>
     [Fact]
     public async Task HandleAsync_FiltersByCategory()
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
+        var cleaningId = db.Categories.Single(c => c.Code == "cleaning").Id;
+        var beveragesId = db.Categories.Single(c => c.Code == "beverages").Id;
         db.Products.AddRange(
-            NewProduct("Mouse", category: "Hardware"),
-            NewProduct("License", category: "Software"),
-            NewProduct("Monitor", category: "Hardware"));
+            NewProduct(cleaningId, "Mouse"),
+            NewProduct(beveragesId, "License"),
+            NewProduct(cleaningId, "Monitor"));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
 
         // Act
-        var result = await handler.HandleAsync(new GetProductsPagedQuery(1, 10, Category: "hardware"));
+        var result = await handler.HandleAsync(new GetProductsPagedQuery(1, 10, CategoryId: cleaningId));
 
         // Assert
         Assert.Equal(2, result.TotalCount);
-        Assert.All(result.Items, item => Assert.Equal("Hardware", item.Category));
+        Assert.All(result.Items, item => Assert.Equal(cleaningId, item.CategoryId));
     }
 
     /// <summary>Search and category are combined with an AND.</summary>
@@ -148,17 +161,19 @@ public class GetProductsPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
+        var cleaningId = db.Categories.Single(c => c.Code == "cleaning").Id;
+        var beveragesId = db.Categories.Single(c => c.Code == "beverages").Id;
         db.Products.AddRange(
-            NewProduct("Wireless mouse", sku: "MOU-1", category: "Hardware"),
-            NewProduct("Wireless license", sku: "LIC-1", category: "Software"),
-            NewProduct("Wired mouse", sku: "MOU-2", category: "Hardware"));
+            NewProduct(cleaningId, "Wireless mouse", sku: "MOU-1"),
+            NewProduct(beveragesId, "Wireless license", sku: "LIC-1"),
+            NewProduct(cleaningId, "Wired mouse", sku: "MOU-2"));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
 
         // Act
         var result = await handler.HandleAsync(
-            new GetProductsPagedQuery(1, 10, Search: "wireless", Category: "Hardware"));
+            new GetProductsPagedQuery(1, 10, Search: "wireless", CategoryId: cleaningId));
 
         // Assert
         Assert.Single(result.Items);
@@ -171,7 +186,8 @@ public class GetProductsPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        db.Products.Add(NewProduct("Mouse"));
+        var categoryId = db.Categories.First().Id;
+        db.Products.Add(NewProduct(categoryId, "Mouse"));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
@@ -191,18 +207,20 @@ public class GetProductsPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
+        var cleaningId = db.Categories.Single(c => c.Code == "cleaning").Id;
+        var beveragesId = db.Categories.Single(c => c.Code == "beverages").Id;
         db.Products.AddRange(
-            NewProduct("Widget A", sku: "W-1", category: "Hardware"),
-            NewProduct("Widget B", sku: "W-2", category: "Hardware"),
-            NewProduct("Widget C", sku: "W-3", category: "Hardware"),
-            NewProduct("Other", sku: "O-1", category: "Software"));
+            NewProduct(cleaningId, "Widget A", sku: "W-1"),
+            NewProduct(cleaningId, "Widget B", sku: "W-2"),
+            NewProduct(cleaningId, "Widget C", sku: "W-3"),
+            NewProduct(beveragesId, "Other", sku: "O-1"));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);
 
         // Act
-        var firstPage = await handler.HandleAsync(new GetProductsPagedQuery(1, 2, Category: "Hardware"));
-        var secondPage = await handler.HandleAsync(new GetProductsPagedQuery(2, 2, Category: "Hardware"));
+        var firstPage = await handler.HandleAsync(new GetProductsPagedQuery(1, 2, CategoryId: cleaningId));
+        var secondPage = await handler.HandleAsync(new GetProductsPagedQuery(2, 2, CategoryId: cleaningId));
 
         // Assert
         Assert.Equal(3, firstPage.TotalCount);

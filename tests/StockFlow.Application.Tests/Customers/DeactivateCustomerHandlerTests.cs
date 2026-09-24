@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Customers;
 using StockFlow.Application.Customers.Commands;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Customers;
@@ -16,7 +17,7 @@ public class DeactivateCustomerHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        var customer = Customer.Create("Acme S.A.", "3-101-123456", null, null, null);
+        var customer = Customer.Create("Acme S.A.", DocumentType.Dui, "01234567-8", null, null, null);
         db.Customers.Add(customer);
         await db.SaveChangesAsync();
 

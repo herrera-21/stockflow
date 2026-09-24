@@ -1,4 +1,5 @@
 using StockFlow.Application.Suppliers.Queries;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Suppliers;
@@ -14,7 +15,8 @@ public class GetSupplierByIdHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        var supplier = Supplier.Create("Acme Supplies S.A.", "3-101-654321", "Jane Doe", "8888-8888", "sales@acme.test", "Main street 1");
+        var supplier = Supplier.Create(
+            "Acme Supplies S.A.", DocumentType.Nit, "0614-010101-011-1", "Jane Doe", "8888-8888", "sales@acme.test", "Main street 1");
         db.Suppliers.Add(supplier);
         await db.SaveChangesAsync();
 
@@ -27,7 +29,8 @@ public class GetSupplierByIdHandlerTests
         Assert.NotNull(result);
         Assert.Equal(supplier.Id, result!.Id);
         Assert.Equal("Acme Supplies S.A.", result.Name);
-        Assert.Equal("3-101-654321", result.TaxId);
+        Assert.Equal(DocumentType.Nit, result.DocumentType);
+        Assert.Equal("0614-010101-011-1", result.TaxId);
         Assert.Equal("Jane Doe", result.ContactName);
     }
 

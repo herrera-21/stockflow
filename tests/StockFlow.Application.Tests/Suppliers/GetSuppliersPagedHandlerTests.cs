@@ -1,4 +1,5 @@
 using StockFlow.Application.Suppliers.Queries;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Suppliers;
@@ -9,13 +10,13 @@ namespace StockFlow.Application.Tests.Suppliers;
 /// </summary>
 public class GetSuppliersPagedHandlerTests
 {
-    // Builds a supplier whose name is used as tax id unless one is provided.
+    // Builds a supplier with a valid DUI, letting each test override name, document, contact or email.
     private static Supplier NewSupplier(
         string name,
-        string? taxId = null,
+        string taxId = "01234567-8",
         string? contactName = null,
         string? email = null) =>
-        Supplier.Create(name, taxId ?? name, contactName, null, email, null);
+        Supplier.Create(name, DocumentType.Dui, taxId, contactName, null, email, null);
 
     /// <summary>The requested page is ordered by name and reports the correct paging metadata.</summary>
     [Fact]
@@ -23,7 +24,10 @@ public class GetSuppliersPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        db.Suppliers.AddRange(NewSupplier("C supplier"), NewSupplier("A supplier"), NewSupplier("B supplier"));
+        db.Suppliers.AddRange(
+            NewSupplier("C supplier", "00000003-3"),
+            NewSupplier("A supplier", "00000001-1"),
+            NewSupplier("B supplier", "00000002-2"));
         await db.SaveChangesAsync();
 
         var handler = new GetSuppliersPagedHandler(db);
@@ -47,7 +51,10 @@ public class GetSuppliersPagedHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        db.Suppliers.AddRange(NewSupplier("A supplier"), NewSupplier("B supplier"), NewSupplier("C supplier"));
+        db.Suppliers.AddRange(
+            NewSupplier("A supplier", "00000001-1"),
+            NewSupplier("B supplier", "00000002-2"),
+            NewSupplier("C supplier", "00000003-3"));
         await db.SaveChangesAsync();
 
         var handler = new GetSuppliersPagedHandler(db);
@@ -69,9 +76,9 @@ public class GetSuppliersPagedHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Suppliers.AddRange(
-            NewSupplier("Acme Supplies"),
-            NewSupplier("Globex"),
-            NewSupplier("Initech"));
+            NewSupplier("Acme Supplies", "00000001-1"),
+            NewSupplier("Globex", "00000002-2"),
+            NewSupplier("Initech", "00000003-3"));
         await db.SaveChangesAsync();
 
         var handler = new GetSuppliersPagedHandler(db);
@@ -84,21 +91,21 @@ public class GetSuppliersPagedHandlerTests
         Assert.Equal("Acme Supplies", result.Items[0].Name);
     }
 
-    /// <summary>Search matches the tax identification case-insensitively.</summary>
+    /// <summary>Search matches the document number.</summary>
     [Fact]
     public async Task HandleAsync_FiltersByTaxId()
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Suppliers.AddRange(
-            NewSupplier("Acme", taxId: "3-101-AAAA"),
-            NewSupplier("Globex", taxId: "3-101-BBBB"));
+            NewSupplier("Acme", "01234567-8"),
+            NewSupplier("Globex", "08765432-1"));
         await db.SaveChangesAsync();
 
         var handler = new GetSuppliersPagedHandler(db);
 
         // Act
-        var result = await handler.HandleAsync(new GetSuppliersPagedQuery(1, 10, Search: "bbbb"));
+        var result = await handler.HandleAsync(new GetSuppliersPagedQuery(1, 10, Search: "8765"));
 
         // Assert
         Assert.Single(result.Items);
@@ -112,9 +119,9 @@ public class GetSuppliersPagedHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Suppliers.AddRange(
-            NewSupplier("Acme", contactName: "Jane Doe"),
-            NewSupplier("Globex", contactName: "John Roe"),
-            NewSupplier("NoContact", taxId: "3-101-CCCC"));
+            NewSupplier("Acme", "00000001-1", contactName: "Jane Doe"),
+            NewSupplier("Globex", "00000002-2", contactName: "John Roe"),
+            NewSupplier("NoContact", "00000003-3"));
         await db.SaveChangesAsync();
 
         var handler = new GetSuppliersPagedHandler(db);
@@ -134,9 +141,9 @@ public class GetSuppliersPagedHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Suppliers.AddRange(
-            NewSupplier("Acme", email: "billing@acme.test"),
-            NewSupplier("Globex", email: "contact@globex.test"),
-            NewSupplier("NoEmail", taxId: "3-101-CCCC"));
+            NewSupplier("Acme", "00000001-1", email: "billing@acme.test"),
+            NewSupplier("Globex", "00000002-2", email: "contact@globex.test"),
+            NewSupplier("NoEmail", "00000003-3"));
         await db.SaveChangesAsync();
 
         var handler = new GetSuppliersPagedHandler(db);
@@ -176,10 +183,10 @@ public class GetSuppliersPagedHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         db.Suppliers.AddRange(
-            NewSupplier("Widget A"),
-            NewSupplier("Widget B"),
-            NewSupplier("Widget C"),
-            NewSupplier("Other"));
+            NewSupplier("Widget A", "00000001-1"),
+            NewSupplier("Widget B", "00000002-2"),
+            NewSupplier("Widget C", "00000003-3"),
+            NewSupplier("Other", "00000004-4"));
         await db.SaveChangesAsync();
 
         var handler = new GetSuppliersPagedHandler(db);

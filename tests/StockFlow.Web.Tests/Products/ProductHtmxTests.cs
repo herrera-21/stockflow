@@ -42,7 +42,7 @@ public class ProductHtmxTests
         // Arrange
         var client = await CreateAuthenticatedClientAsync(StockFlowWebFactory.AdminEmail, StockFlowWebFactory.AdminPassword);
         var name = $"Live search {Guid.NewGuid():N}";
-        var id = await SeedAsync(name, "General");
+        var id = await SeedAsync(name, CategoryIds.Other);
 
         // Act: filter down to the seeded product so it is guaranteed to be on the rendered page.
         var response = await client.GetAsync($"/Products?search={Uri.EscapeDataString(name)}");
@@ -75,8 +75,8 @@ public class ProductHtmxTests
         var client = await CreateAuthenticatedClientAsync(StockFlowWebFactory.AdminEmail, StockFlowWebFactory.AdminPassword);
         var matchName = $"Match {Guid.NewGuid():N}";
         var otherName = $"Other {Guid.NewGuid():N}";
-        await SeedAsync(matchName, "General");
-        await SeedAsync(otherName, "General");
+        await SeedAsync(matchName, CategoryIds.Other);
+        await SeedAsync(otherName, CategoryIds.Other);
 
         // Act
         var response = await GetHtmxAsync(client, $"/Products?handler=Rows&search={Uri.EscapeDataString(matchName)}");
@@ -95,14 +95,15 @@ public class ProductHtmxTests
     {
         // Arrange
         var client = await CreateAuthenticatedClientAsync(StockFlowWebFactory.AdminEmail, StockFlowWebFactory.AdminPassword);
-        var category = $"Cat-{Guid.NewGuid():N}";
         var matchName = $"In {Guid.NewGuid():N}";
         var otherName = $"Out {Guid.NewGuid():N}";
-        await SeedAsync(matchName, category);
-        await SeedAsync(otherName, "General");
+        var matchCategoryId = await SeedCategoryAsync();
+        var otherCategoryId = await SeedCategoryAsync();
+        await SeedAsync(matchName, matchCategoryId);
+        await SeedAsync(otherName, otherCategoryId);
 
         // Act
-        var response = await GetHtmxAsync(client, $"/Products?handler=Rows&category={Uri.EscapeDataString(category)}");
+        var response = await GetHtmxAsync(client, $"/Products?handler=Rows&categoryId={matchCategoryId}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -133,26 +134,26 @@ public class ProductHtmxTests
     {
         // Arrange
         var client = await CreateAuthenticatedClientAsync(StockFlowWebFactory.AdminEmail, StockFlowWebFactory.AdminPassword);
-        var category = $"Cat-{Guid.NewGuid():N}";
+        var categoryId = await SeedCategoryAsync();
         await using (var db = _factory.CreateDbContext())
         {
             for (var i = 1; i <= 12; i++)
             {
-                db.Products.Add(Product.Create(NewSku(), $"Paged {i:D2}", null, category, 10m, 15m, 13m, 5, 2));
+                db.Products.Add(Product.Create(NewSku(), $"Paged {i:D2}", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2));
             }
 
             await db.SaveChangesAsync();
         }
 
         // Act
-        var firstPage = await GetHtmxAsync(client, $"/Products?handler=Rows&category={category}");
-        var secondPage = await GetHtmxAsync(client, $"/Products?handler=Rows&category={category}&pageNumber=2");
+        var firstPage = await GetHtmxAsync(client, $"/Products?handler=Rows&categoryId={categoryId}");
+        var secondPage = await GetHtmxAsync(client, $"/Products?handler=Rows&categoryId={categoryId}&pageNumber=2");
 
         // Assert
         var firstBody = await firstPage.Content.ReadAsStringAsync();
         var secondBody = System.Net.WebUtility.HtmlDecode(await secondPage.Content.ReadAsStringAsync());
         Assert.Contains("pageNumber=2", firstBody);
-        Assert.Contains($"category={category}", firstBody);
+        Assert.Contains($"categoryId={categoryId}", firstBody);
 
         // The second page still honors the category filter and shows the remaining rows.
         Assert.Contains("Página 2 de 2", secondBody);
@@ -166,7 +167,7 @@ public class ProductHtmxTests
     {
         // Arrange
         var client = await CreateAuthenticatedClientAsync(StockFlowWebFactory.AdminEmail, StockFlowWebFactory.AdminPassword);
-        var id = await SeedAsync("Htmx deactivate", "General");
+        var id = await SeedAsync("Htmx deactivate", CategoryIds.Other);
         var token = await GetAntiforgeryTokenAsync(client, "/Products");
 
         // Act
@@ -192,7 +193,7 @@ public class ProductHtmxTests
         // Arrange
         await _factory.EnsureUserInRoleAsync("sales@stockflow.local", "Sales#2026", ApplicationRoles.Salesperson);
         var client = await CreateAuthenticatedClientAsync("sales@stockflow.local", "Sales#2026");
-        var id = await SeedAsync("Htmx protected", "General");
+        var id = await SeedAsync("Htmx protected", CategoryIds.Other);
         var token = await GetAntiforgeryTokenAsync(client, "/Products");
 
         // Act
@@ -212,13 +213,23 @@ public class ProductHtmxTests
     private static string NewSku() => $"IT-{Guid.NewGuid().ToString("N")[..8]}";
 
     // Persists a product with the given name and category and returns its id.
-    private async Task<Guid> SeedAsync(string name, string category)
+    private async Task<Guid> SeedAsync(string name, Guid categoryId)
     {
         await using var db = _factory.CreateDbContext();
-        var product = Product.Create(NewSku(), name, null, category, 10m, 15m, 13m, 5, 2);
+        var product = Product.Create(NewSku(), name, null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
         db.Products.Add(product);
         await db.SaveChangesAsync();
         return product.Id;
+    }
+
+    // Persists a fresh category with a unique name and returns its id.
+    private async Task<Guid> SeedCategoryAsync()
+    {
+        await using var db = _factory.CreateDbContext();
+        var category = Category.Create($"Cat {Guid.NewGuid():N}");
+        db.Categories.Add(category);
+        await db.SaveChangesAsync();
+        return category.Id;
     }
 
     // Sends a GET marked as an htmx request.

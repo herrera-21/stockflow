@@ -80,6 +80,7 @@ public class CustomerPagesTests
         var response = await client.PostAsync("/Customers/Create", Form(new Dictionary<string, string>
         {
             ["Input.Name"] = "Integration customer",
+            ["Input.DocumentType"] = "Dui",
             ["Input.TaxId"] = taxId,
             ["Input.Phone"] = "8888-8888",
             ["Input.Email"] = "integration@acme.test",
@@ -97,6 +98,59 @@ public class CustomerPagesTests
         Assert.True(customer.IsActive);
     }
 
+    /// <summary>Creating a company customer whose name contains digits and symbols persists it.</summary>
+    [Fact]
+    public async Task Create_WithCompanyNameContainingDigitsAndSymbols_PersistsCustomer()
+    {
+        // Arrange
+        var client = await AdminClientAsync();
+        var nit = NewCompanyNit();
+        var token = await GetAntiforgeryTokenAsync(client, "/Customers/Create");
+
+        // Act
+        var response = await client.PostAsync("/Customers/Create", Form(new Dictionary<string, string>
+        {
+            ["Input.Name"] = "Distribuidora 24/7 S.A. de C.V.",
+            ["Input.DocumentType"] = "Nit",
+            ["Input.TaxId"] = nit,
+            ["__RequestVerificationToken"] = token
+        }));
+
+        // Assert
+        await AssertStatusAsync(response, HttpStatusCode.Redirect);
+
+        await using var db = _factory.CreateDbContext();
+        var normalized = DocumentValidation.Normalize(DocumentType.Nit, nit);
+        var customer = await db.Customers.SingleAsync(c => c.TaxId == normalized);
+        Assert.Equal("Distribuidora 24/7 S.A. de C.V.", customer.Name);
+    }
+
+    /// <summary>An invalid phone shows a localized message instead of the resource key.</summary>
+    [Fact]
+    public async Task Create_WithInvalidPhone_ShowsLocalizedMessage()
+    {
+        // Arrange
+        var client = await AdminClientAsync();
+        var token = await GetAntiforgeryTokenAsync(client, "/Customers/Create");
+
+        // Act
+        var response = await client.PostAsync("/Customers/Create", Form(new Dictionary<string, string>
+        {
+            ["Input.Name"] = "Acme S.A.",
+            ["Input.DocumentType"] = "Dui",
+            ["Input.TaxId"] = NewTaxId(),
+            ["Input.Phone"] = "call-me",
+            ["__RequestVerificationToken"] = token
+        }));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+        Assert.Contains("no es un número de teléfono válido", html);
+        Assert.DoesNotContain("ValidationPhone", html);
+    }
+
     /// <summary>Creating with a duplicate tax id re-renders the form and does not persist.</summary>
     [Fact]
     public async Task Create_WithDuplicateTaxId_ShowsErrorAndDoesNotPersist()
@@ -106,7 +160,7 @@ public class CustomerPagesTests
         var taxId = NewTaxId();
         await using (var seedDb = _factory.CreateDbContext())
         {
-            seedDb.Customers.Add(Customer.Create("Existing", taxId, null, null, null));
+            seedDb.Customers.Add(Customer.Create("Existing", DocumentType.Dui, taxId, null, null, null));
             await seedDb.SaveChangesAsync();
         }
 
@@ -116,6 +170,7 @@ public class CustomerPagesTests
         var response = await client.PostAsync("/Customers/Create", Form(new Dictionary<string, string>
         {
             ["Input.Name"] = "Duplicate",
+            ["Input.DocumentType"] = "Dui",
             ["Input.TaxId"] = taxId,
             ["__RequestVerificationToken"] = token
         }));
@@ -137,7 +192,7 @@ public class CustomerPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var customer = Customer.Create("Before", taxId, null, null, null);
+            var customer = Customer.Create("Before", DocumentType.Dui, taxId, null, null, null);
             seedDb.Customers.Add(customer);
             await seedDb.SaveChangesAsync();
             id = customer.Id;
@@ -150,6 +205,7 @@ public class CustomerPagesTests
         {
             ["Input.Id"] = id.ToString(),
             ["Input.Name"] = "After",
+            ["Input.DocumentType"] = "Dui",
             ["Input.TaxId"] = taxId,
             ["Input.Phone"] = "7777-7777",
             ["Input.Email"] = "after@acme.test",
@@ -177,7 +233,7 @@ public class CustomerPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var customer = Customer.Create("History customer", NewTaxId(), null, null, null);
+            var customer = Customer.Create("History customer", DocumentType.Dui, NewTaxId(), null, null, null);
             seedDb.Customers.Add(customer);
             await seedDb.SaveChangesAsync();
             id = customer.Id;
@@ -202,7 +258,7 @@ public class CustomerPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var customer = Customer.Create("To deactivate", NewTaxId(), null, null, null);
+            var customer = Customer.Create("To deactivate", DocumentType.Dui, NewTaxId(), null, null, null);
             seedDb.Customers.Add(customer);
             await seedDb.SaveChangesAsync();
             id = customer.Id;
@@ -234,7 +290,7 @@ public class CustomerPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var customer = Customer.Create("Protected", NewTaxId(), null, null, null);
+            var customer = Customer.Create("Protected", DocumentType.Dui, NewTaxId(), null, null, null);
             seedDb.Customers.Add(customer);
             await seedDb.SaveChangesAsync();
             id = customer.Id;
@@ -255,8 +311,19 @@ public class CustomerPagesTests
         Assert.True(unchanged.IsActive);
     }
 
-    // Generates a unique tax id so tests do not collide on the unique index.
-    private static string NewTaxId() => $"IT-{Guid.NewGuid().ToString("N")[..8]}";
+    // Generates a unique, valid DUI so tests do not collide on the unique index.
+    private static string NewTaxId()
+    {
+        var number = BitConverter.ToUInt32(Guid.NewGuid().ToByteArray(), 0) % 100_000_000;
+        return $"{number:D8}-{number % 10}";
+    }
+
+    // Generates a unique, valid 14-digit NIT so tests do not collide on the unique index.
+    private static string NewCompanyNit()
+    {
+        var digits = Guid.NewGuid().ToByteArray().Select(b => (char)('0' + (b % 10))).ToArray();
+        return new string(digits, 0, 14);
+    }
 
     // Wraps the form fields as URL-encoded content.
     private static FormUrlEncodedContent Form(Dictionary<string, string> fields) => new(fields);

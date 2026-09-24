@@ -1,3 +1,4 @@
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 using StockFlow.Domain.Exceptions;
 
@@ -11,7 +12,7 @@ public class ProductSupplierTests
 {
     // Builds a valid product for the association scenarios.
     private static Product CreateProduct() =>
-        Product.Create("SKU-001", "Test product", null, "General", 10m, 15m, 13m, 0, 0);
+        Product.Create("SKU-001", "Test product", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
 
     /// <summary>Create with valid data sets the properties and is not preferred by default.</summary>
     [Fact]

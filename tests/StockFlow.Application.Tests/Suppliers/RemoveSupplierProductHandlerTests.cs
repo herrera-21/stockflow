@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Products;
 using StockFlow.Application.Suppliers.Commands;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Suppliers;
@@ -16,8 +17,9 @@ public class RemoveSupplierProductHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        var supplier = Supplier.Create("Acme Supplies S.A.", "3-101-654321", null, null, null, null);
-        var product = Product.Create("SKU-001", "Test product", null, "General", 10m, 15m, 13m, 0, 0);
+        var categoryId = db.Categories.First().Id;
+        var supplier = Supplier.Create("Acme Supplies S.A.", DocumentType.Dui, "00000001-1", null, null, null, null);
+        var product = Product.Create("SKU-001", "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
         db.Suppliers.Add(supplier);
         db.Products.Add(product);
         await db.SaveChangesAsync();

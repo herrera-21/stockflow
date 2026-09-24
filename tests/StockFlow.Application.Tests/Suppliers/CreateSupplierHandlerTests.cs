@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Suppliers;
 using StockFlow.Application.Suppliers.Commands;
+using StockFlow.Domain;
 
 namespace StockFlow.Application.Tests.Suppliers;
 
@@ -9,9 +10,12 @@ namespace StockFlow.Application.Tests.Suppliers;
 /// </summary>
 public class CreateSupplierHandlerTests
 {
-    // Builds a valid command, letting each test override the tax id when needed.
-    private static CreateSupplierCommand ValidCommand(string taxId = "3-101-654321") => new(
+    // Builds a valid command, letting each test override the document when needed.
+    private static CreateSupplierCommand ValidCommand(
+        DocumentType documentType = DocumentType.Nit,
+        string taxId = "0614-010101-011-1") => new(
         "Acme Supplies S.A.",
+        documentType,
         taxId,
         "Jane Doe",
         "8888-8888",
@@ -33,14 +37,15 @@ public class CreateSupplierHandlerTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal("Acme Supplies S.A.", result.Value!.Name);
+        Assert.Equal(DocumentType.Nit, result.Value.DocumentType);
         Assert.Equal("Jane Doe", result.Value.ContactName);
         Assert.True(result.Value.IsActive);
         Assert.True(await db.Suppliers.AnyAsync(s => s.Id == result.Value.Id));
     }
 
-    /// <summary>Creating with a duplicate tax id fails and does not persist a second supplier.</summary>
+    /// <summary>Creating with a duplicate document of the same type fails.</summary>
     [Fact]
-    public async Task HandleAsync_WithDuplicateTaxId_ReturnsFailure()
+    public async Task HandleAsync_WithDuplicateDocument_ReturnsFailure()
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
@@ -54,5 +59,22 @@ public class CreateSupplierHandlerTests
         Assert.False(result.IsSuccess);
         Assert.Equal(SupplierErrorCodes.TaxIdAlreadyExists, result.Error);
         Assert.Equal(1, await db.Suppliers.CountAsync());
+    }
+
+    /// <summary>The same number under a different document type is allowed.</summary>
+    [Fact]
+    public async Task HandleAsync_WithSameNumberDifferentType_Succeeds()
+    {
+        // Arrange
+        await using var db = TestDbContextFactory.Create();
+        var handler = new CreateSupplierHandler(db);
+        await handler.HandleAsync(ValidCommand(DocumentType.Dui, "01234567-8"));
+
+        // Act
+        var result = await handler.HandleAsync(ValidCommand(DocumentType.Nit, "01234567-8"));
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, await db.Suppliers.CountAsync());
     }
 }

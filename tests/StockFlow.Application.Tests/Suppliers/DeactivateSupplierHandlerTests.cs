@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Suppliers;
 using StockFlow.Application.Suppliers.Commands;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Suppliers;
@@ -16,7 +17,8 @@ public class DeactivateSupplierHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        var supplier = Supplier.Create("Acme Supplies S.A.", "3-101-654321", null, null, null, null);
+        var supplier = Supplier.Create(
+            "Acme Supplies S.A.", DocumentType.Nit, "0614-010101-011-1", null, null, null, null);
         db.Suppliers.Add(supplier);
         await db.SaveChangesAsync();
 

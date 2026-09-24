@@ -27,7 +27,7 @@ public class CustomerHtmxTests
     {
         // Arrange
         var client = await AdminClientAsync();
-        var name = $"Live search {Guid.NewGuid():N}";
+        var name = $"Live search {NewNameToken()}";
         var id = await SeedAsync(name);
 
         // Act: filter down to the seeded customer so it is guaranteed to be on the rendered page.
@@ -55,8 +55,8 @@ public class CustomerHtmxTests
     {
         // Arrange
         var client = await AdminClientAsync();
-        var matchName = $"Match {Guid.NewGuid():N}";
-        var otherName = $"Other {Guid.NewGuid():N}";
+        var matchName = $"Match {NewNameToken()}";
+        var otherName = $"Other {NewNameToken()}";
         await SeedAsync(matchName);
         await SeedAsync(otherName);
 
@@ -77,8 +77,8 @@ public class CustomerHtmxTests
     {
         // Arrange
         var client = await AdminClientAsync();
-        var matchTaxId = $"MATCH-{Guid.NewGuid():N}";
-        var otherTaxId = $"OTHER-{Guid.NewGuid():N}";
+        var matchTaxId = NewTaxId();
+        var otherTaxId = NewTaxId();
         await SeedAsync("Match customer", matchTaxId);
         await SeedAsync("Other customer", otherTaxId);
 
@@ -114,12 +114,14 @@ public class CustomerHtmxTests
     {
         // Arrange
         var client = await AdminClientAsync();
-        var prefix = $"Paged{Guid.NewGuid():N}";
+        var prefix = NewNameToken();
         await using (var db = _factory.CreateDbContext())
         {
             for (var i = 1; i <= 12; i++)
             {
-                db.Customers.Add(Customer.Create($"{prefix} {i:D2}", NewTaxId(), null, null, null));
+                // Names use letters only because the domain rejects digits in a person name.
+                var suffix = (char)('a' + i - 1);
+                db.Customers.Add(Customer.Create($"{prefix} {suffix}", DocumentType.Dui, NewTaxId(), null, null, null));
             }
 
             await db.SaveChangesAsync();
@@ -137,8 +139,8 @@ public class CustomerHtmxTests
 
         // The second page still honors the search filter and shows the remaining rows.
         Assert.Contains("Página 2 de 2", secondBody);
-        Assert.Contains($"{prefix} 11", secondBody);
-        Assert.Contains($"{prefix} 12", secondBody);
+        Assert.Contains($"{prefix} k", secondBody);
+        Assert.Contains($"{prefix} l", secondBody);
     }
 
     /// <summary>Deactivating over htmx returns the updated row and persists the change.</summary>
@@ -189,14 +191,22 @@ public class CustomerHtmxTests
         Assert.True(unchanged.IsActive);
     }
 
-    // Generates a unique tax id so tests do not collide on the unique index.
-    private static string NewTaxId() => $"IT-{Guid.NewGuid().ToString("N")[..8]}";
+    // Generates a unique, letters-only token valid as part of a person name.
+    private static string NewNameToken() =>
+        new(Enumerable.Range(0, 8).Select(_ => (char)('a' + Random.Shared.Next(26))).ToArray());
+
+    // Generates a unique, valid DUI so tests do not collide on the unique index.
+    private static string NewTaxId()
+    {
+        var number = BitConverter.ToUInt32(Guid.NewGuid().ToByteArray(), 0) % 100_000_000;
+        return $"{number:D8}-{number % 10}";
+    }
 
     // Persists a customer with the given name and returns its id.
     private async Task<Guid> SeedAsync(string name, string? taxId = null)
     {
         await using var db = _factory.CreateDbContext();
-        var customer = Customer.Create(name, taxId ?? NewTaxId(), null, null, null);
+        var customer = Customer.Create(name, DocumentType.Dui, taxId ?? NewTaxId(), null, null, null);
         db.Customers.Add(customer);
         await db.SaveChangesAsync();
         return customer.Id;

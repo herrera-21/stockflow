@@ -77,8 +77,8 @@ public class SupplierHtmxTests
     {
         // Arrange
         var client = await AdminClientAsync();
-        var matchTaxId = $"MATCH-{Guid.NewGuid():N}";
-        var otherTaxId = $"OTHER-{Guid.NewGuid():N}";
+        var matchTaxId = NewTaxId();
+        var otherTaxId = NewTaxId();
         await SeedAsync("Match supplier", matchTaxId);
         await SeedAsync("Other supplier", otherTaxId);
 
@@ -119,7 +119,7 @@ public class SupplierHtmxTests
         {
             for (var i = 1; i <= 12; i++)
             {
-                db.Suppliers.Add(Supplier.Create($"{prefix} {i:D2}", NewTaxId(), null, null, null, null));
+                db.Suppliers.Add(Supplier.Create($"{prefix} {i:D2}", DocumentType.Dui, NewTaxId(), null, null, null, null));
             }
 
             await db.SaveChangesAsync();
@@ -190,13 +190,17 @@ public class SupplierHtmxTests
     }
 
     // Generates a unique tax id so tests do not collide on the unique index.
-    private static string NewTaxId() => $"IT-{Guid.NewGuid().ToString("N")[..8]}";
+    private static string NewTaxId()
+    {
+        var number = BitConverter.ToUInt32(Guid.NewGuid().ToByteArray(), 0) % 100_000_000;
+        return $"{number:D8}-{number % 10}";
+    }
 
     // Persists a supplier with the given name and returns its id.
     private async Task<Guid> SeedAsync(string name, string? taxId = null)
     {
         await using var db = _factory.CreateDbContext();
-        var supplier = Supplier.Create(name, taxId ?? NewTaxId(), null, null, null, null);
+        var supplier = Supplier.Create(name, DocumentType.Dui, taxId ?? NewTaxId(), null, null, null, null);
         db.Suppliers.Add(supplier);
         await db.SaveChangesAsync();
         return supplier.Id;

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Products;
 using StockFlow.Application.Suppliers;
 using StockFlow.Application.Suppliers.Commands;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Suppliers;
@@ -13,12 +14,12 @@ namespace StockFlow.Application.Tests.Suppliers;
 public class AssignSupplierProductHandlerTests
 {
     // Builds a valid product, letting each test override the SKU when needed.
-    private static Product NewProduct(string sku = "SKU-001") =>
-        Product.Create(sku, "Test product", null, "General", 10m, 15m, 13m, 0, 0);
+    private static Product NewProduct(Guid categoryId, string sku = "SKU-001") =>
+        Product.Create(sku, "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
 
     // Builds a valid supplier.
-    private static Supplier NewSupplier(string taxId = "3-101-654321") =>
-        Supplier.Create("Acme Supplies S.A.", taxId, null, null, null, null);
+    private static Supplier NewSupplier(string taxId = "00000001-1") =>
+        Supplier.Create("Acme Supplies S.A.", DocumentType.Dui, taxId, null, null, null, null);
 
     /// <summary>Associating a product with a supplier persists the association with its data.</summary>
     [Fact]
@@ -26,8 +27,9 @@ public class AssignSupplierProductHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
+        var categoryId = db.Categories.First().Id;
         var supplier = NewSupplier();
-        var product = NewProduct();
+        var product = NewProduct(categoryId);
         db.Suppliers.Add(supplier);
         db.Products.Add(product);
         await db.SaveChangesAsync();
@@ -56,8 +58,9 @@ public class AssignSupplierProductHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
+        var categoryId = db.Categories.First().Id;
         var supplier = NewSupplier();
-        var product = NewProduct();
+        var product = NewProduct(categoryId);
         db.Suppliers.Add(supplier);
         db.Products.Add(product);
         await db.SaveChangesAsync();
@@ -81,9 +84,10 @@ public class AssignSupplierProductHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        var first = NewSupplier("3-101-000001");
-        var second = NewSupplier("3-101-000002");
-        var product = NewProduct();
+        var categoryId = db.Categories.First().Id;
+        var first = NewSupplier("00000001-1");
+        var second = NewSupplier("00000002-2");
+        var product = NewProduct(categoryId);
         db.Suppliers.AddRange(first, second);
         db.Products.Add(product);
         await db.SaveChangesAsync();
@@ -106,7 +110,8 @@ public class AssignSupplierProductHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        var product = NewProduct();
+        var categoryId = db.Categories.First().Id;
+        var product = NewProduct(categoryId);
         db.Products.Add(product);
         await db.SaveChangesAsync();
 

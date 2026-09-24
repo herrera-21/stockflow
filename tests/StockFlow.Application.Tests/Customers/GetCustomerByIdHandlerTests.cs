@@ -1,4 +1,5 @@
 using StockFlow.Application.Customers.Queries;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Customers;
@@ -14,7 +15,8 @@ public class GetCustomerByIdHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        var customer = Customer.Create("Acme S.A.", "3-101-123456", "8888-8888", "contact@acme.test", "Main street 1");
+        var customer = Customer.Create(
+            "Acme S.A.", DocumentType.Dui, "01234567-8", "8888-8888", "contact@acme.test", "Main street 1");
         db.Customers.Add(customer);
         await db.SaveChangesAsync();
 
@@ -27,7 +29,8 @@ public class GetCustomerByIdHandlerTests
         Assert.NotNull(result);
         Assert.Equal(customer.Id, result!.Id);
         Assert.Equal("Acme S.A.", result.Name);
-        Assert.Equal("3-101-123456", result.TaxId);
+        Assert.Equal(DocumentType.Dui, result.DocumentType);
+        Assert.Equal("01234567-8", result.TaxId);
     }
 
     /// <summary>Querying an unknown identifier returns null.</summary>

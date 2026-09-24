@@ -76,6 +76,34 @@ public class SupplierProductsPageTests
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains("Associated product", body);
         Assert.Contains("SUP-1", body);
+        Assert.Contains("$5.00", body);
+    }
+
+    /// <summary>
+    /// The form explains its fields: product options carry their purchase unit and price for the
+    /// dynamic price help, and the list shows the agreed price per purchase unit.
+    /// </summary>
+    [Fact]
+    public async Task Products_ShowsPriceHelpAndPricePerPurchaseUnit()
+    {
+        // Arrange
+        var client = await AdminClientAsync();
+        var supplierId = await SeedSupplierAsync();
+        var productId = await SeedProductAsync("Priced product");
+        await using (var db = _factory.CreateDbContext())
+        {
+            db.ProductSuppliers.Add(ProductSupplier.Create(productId, supplierId, null, 5m));
+            await db.SaveChangesAsync();
+        }
+
+        // Act
+        var body = await client.GetStringAsync($"/Suppliers/Products/{supplierId}");
+
+        // Assert: the seeded products are bought by the unit (symbol "u" in the default culture).
+        Assert.Contains("id=\"supplier-price-help\"", body);
+        Assert.Contains("data-unit=\"", body);
+        Assert.Contains("data-price=\"$", body);
+        Assert.Contains("$5.00 <span class=\"text-body-secondary small\">/ u</span>", body);
     }
 
     /// <summary>Assigning a product persists the association with its supplier-specific data.</summary>
@@ -93,7 +121,7 @@ public class SupplierProductsPageTests
         {
             ["Input.ProductId"] = productId.ToString(),
             ["Input.SupplierSku"] = "SUP-42",
-            ["Input.PurchasePrice"] = "7,50",
+            ["Input.PurchasePrice"] = "7.50",
             ["Input.IsPreferred"] = "true",
             ["__RequestVerificationToken"] = token
         }));
@@ -129,7 +157,7 @@ public class SupplierProductsPageTests
         {
             ["Input.ProductId"] = productId.ToString(),
             ["Input.SupplierSku"] = "SUP-NEW",
-            ["Input.PurchasePrice"] = "9,99",
+            ["Input.PurchasePrice"] = "9.99",
             ["__RequestVerificationToken"] = token
         }));
 
@@ -177,7 +205,8 @@ public class SupplierProductsPageTests
     private async Task<Guid> SeedSupplierAsync()
     {
         await using var db = _factory.CreateDbContext();
-        var supplier = Supplier.Create("Association supplier", $"IT-{Guid.NewGuid().ToString("N")[..8]}", null, null, null, null);
+        var number = BitConverter.ToUInt32(Guid.NewGuid().ToByteArray(), 0) % 100_000_000;
+        var supplier = Supplier.Create("Association supplier", DocumentType.Dui, $"{number:D8}-{number % 10}", null, null, null, null);
         db.Suppliers.Add(supplier);
         await db.SaveChangesAsync();
         return supplier.Id;
@@ -187,7 +216,7 @@ public class SupplierProductsPageTests
     private async Task<Guid> SeedProductAsync(string name)
     {
         await using var db = _factory.CreateDbContext();
-        var product = Product.Create($"SKU-{Guid.NewGuid().ToString("N")[..8]}", name, null, "General", 10m, 15m, 13m, 0, 0);
+        var product = Product.Create($"SKU-{Guid.NewGuid().ToString("N")[..8]}", name, null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
         db.Products.Add(product);
         await db.SaveChangesAsync();
         return product.Id;

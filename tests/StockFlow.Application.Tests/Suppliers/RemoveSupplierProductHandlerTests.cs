@@ -19,7 +19,7 @@ public class RemoveSupplierProductHandlerTests
         await using var db = TestDbContextFactory.Create();
         var categoryId = db.Categories.First().Id;
         var supplier = Supplier.Create("Acme Supplies S.A.", DocumentType.Dui, "00000001-1", null, null, null, null);
-        var product = Product.Create("SKU-001", "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
+        var product = Product.Create("SKU-001", "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
         db.Suppliers.Add(supplier);
         db.Products.Add(product);
         await db.SaveChangesAsync();

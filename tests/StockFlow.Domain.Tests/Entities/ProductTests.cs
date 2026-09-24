@@ -31,7 +31,10 @@ public class ProductTests
             salePrice,
             taxRate,
             initialStock,
-            minimumStock);
+            minimumStock,
+            "user-1",
+            "user@test.local",
+            DateTimeOffset.UnixEpoch);
 
     /// <summary>Create with valid data sets the properties and marks the product active.</summary>
     [Fact]
@@ -62,7 +65,7 @@ public class ProductTests
     {
         // Act & Assert
         Assert.Throws<DomainException>(() => Product.Create(
-            " ", "Test product", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0));
+            " ", "Test product", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
     }
 
     /// <summary>Create with out-of-range prices or tax rate throws a <see cref="DomainException"/>.</summary>
@@ -265,5 +268,181 @@ public class ProductTests
         // Assert
         Assert.Equal(UnitOfMeasure.Pound, product.BaseUnit);
         Assert.Equal(1.5m, product.MinimumStock);
+    }
+
+    /// <summary>Create with a positive opening stock records an initial-balance movement.</summary>
+    [Fact]
+    public void Create_WithOpeningStock_RecordsInitialBalanceMovement()
+    {
+        // Act
+        var product = CreateProduct(initialStock: 5);
+
+        // Assert
+        var movement = Assert.Single(product.Movements);
+        Assert.Equal(InventoryMovementType.InitialBalance, movement.Type);
+        Assert.Equal(5m, movement.Quantity);
+        Assert.Equal(0m, movement.StockBefore);
+        Assert.Equal(5m, movement.StockAfter);
+        Assert.Equal(UnitOfMeasure.Unit, movement.BaseUnit);
+        Assert.Equal("user-1", movement.UserId);
+        Assert.Equal("user@test.local", movement.UserName);
+    }
+
+    /// <summary>Create with zero opening stock records no movement.</summary>
+    [Fact]
+    public void Create_WithZeroOpeningStock_RecordsNoMovement()
+    {
+        // Act
+        var product = CreateProduct(initialStock: 0);
+
+        // Assert
+        Assert.Empty(product.Movements);
+    }
+
+    /// <summary>An inbound movement increases the stock and records the before/after values.</summary>
+    [Fact]
+    public void ApplyMovement_Inbound_IncreasesStock()
+    {
+        // Arrange
+        var product = CreateProduct(initialStock: 10);
+
+        // Act
+        var movement = product.ApplyMovement(
+            InventoryMovementType.PurchaseIn, 5, null, null,
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
+
+        // Assert
+        Assert.Equal(15m, product.CurrentStock);
+        Assert.Equal(10m, movement.StockBefore);
+        Assert.Equal(15m, movement.StockAfter);
+    }
+
+    /// <summary>An outbound movement decreases the stock and records the before/after values.</summary>
+    [Fact]
+    public void ApplyMovement_Outbound_DecreasesStock()
+    {
+        // Arrange
+        var product = CreateProduct(initialStock: 10);
+
+        // Act
+        var movement = product.ApplyMovement(
+            InventoryMovementType.SaleOut, 4, null, null,
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
+
+        // Assert
+        Assert.Equal(6m, product.CurrentStock);
+        Assert.Equal(10m, movement.StockBefore);
+        Assert.Equal(6m, movement.StockAfter);
+    }
+
+    /// <summary>An outbound movement that would go below zero throws and leaves the stock unchanged.</summary>
+    [Fact]
+    public void ApplyMovement_WouldGoNegative_ThrowsDomainException()
+    {
+        // Arrange
+        var product = CreateProduct(initialStock: 3);
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => product.ApplyMovement(
+            InventoryMovementType.SaleOut, 5, null, null,
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
+        Assert.Equal(3m, product.CurrentStock);
+    }
+
+    /// <summary>A zero quantity throws a <see cref="DomainException"/>.</summary>
+    [Fact]
+    public void ApplyMovement_WithZeroQuantity_ThrowsDomainException()
+    {
+        // Arrange
+        var product = CreateProduct();
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => product.ApplyMovement(
+            InventoryMovementType.AdjustmentIncrease, 0, InventoryAdjustmentReason.PhysicalCount, null,
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
+    }
+
+    /// <summary>A fractional quantity for a countable base unit throws a <see cref="DomainException"/>.</summary>
+    [Fact]
+    public void ApplyMovement_WithFractionalQuantityForCountableUnit_ThrowsDomainException()
+    {
+        // Arrange
+        var product = CreateProduct(baseUnit: UnitOfMeasure.Unit);
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => product.ApplyMovement(
+            InventoryMovementType.AdjustmentIncrease, 2.5m, InventoryAdjustmentReason.PhysicalCount, null,
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
+    }
+
+    /// <summary>A fractional quantity is accepted for a unit that allows fractions.</summary>
+    [Fact]
+    public void ApplyMovement_WithFractionalQuantityForWeightUnit_Succeeds()
+    {
+        // Arrange
+        var product = CreateProduct(
+            initialStock: 5m, baseUnit: UnitOfMeasure.Pound, purchaseUnit: UnitOfMeasure.Pound);
+
+        // Act
+        product.ApplyMovement(
+            InventoryMovementType.AdjustmentIncrease, 2.5m, InventoryAdjustmentReason.PhysicalCount, null,
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
+
+        // Assert
+        Assert.Equal(7.5m, product.CurrentStock);
+    }
+
+    /// <summary>A manual adjustment without a reason throws a <see cref="DomainException"/>.</summary>
+    [Fact]
+    public void ApplyMovement_AdjustmentWithoutReason_ThrowsDomainException()
+    {
+        // Arrange
+        var product = CreateProduct();
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => product.ApplyMovement(
+            InventoryMovementType.AdjustmentIncrease, 1, null, null,
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
+    }
+
+    /// <summary>An adjustment with reason "other" and no note throws a <see cref="DomainException"/>.</summary>
+    [Fact]
+    public void ApplyMovement_OtherReasonWithoutNote_ThrowsDomainException()
+    {
+        // Arrange
+        var product = CreateProduct();
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => product.ApplyMovement(
+            InventoryMovementType.AdjustmentIncrease, 1, InventoryAdjustmentReason.Other, "  ",
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
+    }
+
+    /// <summary>An inactive product rejects movements.</summary>
+    [Fact]
+    public void ApplyMovement_OnInactiveProduct_ThrowsDomainException()
+    {
+        // Arrange
+        var product = CreateProduct();
+        product.Deactivate();
+
+        // Act & Assert
+        Assert.Throws<DomainException>(() => product.ApplyMovement(
+            InventoryMovementType.PurchaseIn, 1, null, null,
+            "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
+    }
+
+    /// <summary>GetResultingStock reports the stock a movement would produce without applying it.</summary>
+    [Fact]
+    public void GetResultingStock_ReportsResultWithoutChangingStock()
+    {
+        // Arrange
+        var product = CreateProduct(initialStock: 10);
+
+        // Assert
+        Assert.Equal(15m, product.GetResultingStock(InventoryMovementType.PurchaseIn, 5));
+        Assert.Equal(6m, product.GetResultingStock(InventoryMovementType.SaleOut, 4));
+        Assert.Equal(-2m, product.GetResultingStock(InventoryMovementType.SaleOut, 12));
+        Assert.Equal(10m, product.CurrentStock);
     }
 }

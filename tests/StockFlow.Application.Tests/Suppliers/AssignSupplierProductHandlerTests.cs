@@ -15,7 +15,7 @@ public class AssignSupplierProductHandlerTests
 {
     // Builds a valid product, letting each test override the SKU when needed.
     private static Product NewProduct(Guid categoryId, string sku = "SKU-001") =>
-        Product.Create(sku, "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
+        Product.Create(sku, "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
 
     // Builds a valid supplier.
     private static Supplier NewSupplier(string taxId = "00000001-1") =>

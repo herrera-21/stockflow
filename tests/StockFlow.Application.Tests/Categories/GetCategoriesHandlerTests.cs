@@ -34,8 +34,8 @@ public class GetCategoriesHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         var cleaning = db.Categories.Single(c => c.Code == "cleaning");
-        db.Products.Add(Domain.Entities.Product.Create("SKU-001", "P1", null, cleaning.Id, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 0));
-        db.Products.Add(Domain.Entities.Product.Create("SKU-002", "P2", null, cleaning.Id, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 0));
+        db.Products.Add(Domain.Entities.Product.Create("SKU-001", "P1", null, cleaning.Id, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
+        db.Products.Add(Domain.Entities.Product.Create("SKU-002", "P2", null, cleaning.Id, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
         await db.SaveChangesAsync();
 
         var handler = new GetCategoriesPagedHandler(db);

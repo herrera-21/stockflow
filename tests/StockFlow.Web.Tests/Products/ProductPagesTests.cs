@@ -81,7 +81,7 @@ public class ProductPagesTests
         var sku = NewSku();
         await using (var seedDb = _factory.CreateDbContext())
         {
-            seedDb.Products.Add(Product.Create(sku, "Existing", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2));
+            seedDb.Products.Add(Product.Create(sku, "Existing", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
             await seedDb.SaveChangesAsync();
         }
 
@@ -146,7 +146,7 @@ public class ProductPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var product = Product.Create(sku, "Before", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
+            var product = Product.Create(sku, "Before", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
             seedDb.Products.Add(product);
             await seedDb.SaveChangesAsync();
             id = product.Id;
@@ -281,7 +281,7 @@ public class ProductPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var product = Product.Create(sku, "With stock", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
+            var product = Product.Create(sku, "With stock", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
             seedDb.Products.Add(product);
             await seedDb.SaveChangesAsync();
             id = product.Id;
@@ -317,7 +317,7 @@ public class ProductPagesTests
         var sku = NewSku();
         await using (var seedDb = _factory.CreateDbContext())
         {
-            seedDb.Products.Add(Product.Create(sku, "Bulk rice", null, CategoryIds.Food, UnitOfMeasure.Pound, UnitOfMeasure.Pound, 1m, 0.4m, 0.6m, 0m, 12.5m, 2m));
+            seedDb.Products.Add(Product.Create(sku, "Bulk rice", null, CategoryIds.Food, UnitOfMeasure.Pound, UnitOfMeasure.Pound, 1m, 0.4m, 0.6m, 0m, 12.5m, 2m, "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
             await seedDb.SaveChangesAsync();
         }
 
@@ -356,7 +356,7 @@ public class ProductPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var product = Product.Create(sku, "To deactivate", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
+            var product = Product.Create(sku, "To deactivate", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
             seedDb.Products.Add(product);
             await seedDb.SaveChangesAsync();
             id = product.Id;
@@ -452,7 +452,7 @@ public class ProductPagesTests
         Guid id;
         await using (var seedDb = _factory.CreateDbContext())
         {
-            var product = Product.Create(sku, "Protected", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
+            var product = Product.Create(sku, "Protected", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
             seedDb.Products.Add(product);
             await seedDb.SaveChangesAsync();
             id = product.Id;

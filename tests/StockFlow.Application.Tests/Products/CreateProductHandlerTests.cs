@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Time.Testing;
 using StockFlow.Application.Products;
 using StockFlow.Application.Products.Commands;
 using StockFlow.Domain;
+using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Tests.Products;
 
@@ -32,7 +34,7 @@ public class CreateProductHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         var categoryId = db.Categories.First().Id;
-        var handler = new CreateProductHandler(db);
+        var handler = new CreateProductHandler(db, new FakeCurrentUser(), new FakeTimeProvider());
 
         // Act
         var result = await handler.HandleAsync(ValidCommand(categoryId));
@@ -49,6 +51,32 @@ public class CreateProductHandlerTests
         Assert.Equal(0.5m, result.Value.UnitCost);
         Assert.Equal(48m, result.Value.CurrentStock);
         Assert.True(await db.Products.AnyAsync(p => p.Id == result.Value.Id));
+
+        // The opening stock is recorded as the first movement.
+        var movement = await db.InventoryMovements.SingleAsync(m => m.ProductId == result.Value.Id);
+        Assert.Equal(InventoryMovementType.InitialBalance, movement.Type);
+        Assert.Equal(48m, movement.Quantity);
+        Assert.Equal(0m, movement.StockBefore);
+        Assert.Equal(48m, movement.StockAfter);
+        Assert.Equal("user-1", movement.UserId);
+        Assert.Equal("user@test.local", movement.UserName);
+    }
+
+    /// <summary>Creating with zero opening stock does not record an opening movement.</summary>
+    [Fact]
+    public async Task HandleAsync_WithZeroInitialStock_PersistsNoMovement()
+    {
+        // Arrange
+        await using var db = TestDbContextFactory.Create();
+        var categoryId = db.Categories.First().Id;
+        var handler = new CreateProductHandler(db, new FakeCurrentUser(), new FakeTimeProvider());
+
+        // Act
+        var result = await handler.HandleAsync(ValidCommand(categoryId) with { InitialStock = 0 });
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(0, await db.InventoryMovements.CountAsync());
     }
 
     /// <summary>Creating with a duplicate SKU fails and does not persist a second product.</summary>
@@ -58,7 +86,7 @@ public class CreateProductHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         var categoryId = db.Categories.First().Id;
-        var handler = new CreateProductHandler(db);
+        var handler = new CreateProductHandler(db, new FakeCurrentUser(), new FakeTimeProvider());
         await handler.HandleAsync(ValidCommand(categoryId));
 
         // Act
@@ -76,7 +104,7 @@ public class CreateProductHandlerTests
     {
         // Arrange
         await using var db = TestDbContextFactory.Create();
-        var handler = new CreateProductHandler(db);
+        var handler = new CreateProductHandler(db, new FakeCurrentUser(), new FakeTimeProvider());
 
         // Act
         var result = await handler.HandleAsync(ValidCommand(Guid.NewGuid()));

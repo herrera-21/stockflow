@@ -139,7 +139,7 @@ public class ProductHtmxTests
         {
             for (var i = 1; i <= 12; i++)
             {
-                db.Products.Add(Product.Create(NewSku(), $"Paged {i:D2}", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2));
+                db.Products.Add(Product.Create(NewSku(), $"Paged {i:D2}", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
             }
 
             await db.SaveChangesAsync();
@@ -216,7 +216,7 @@ public class ProductHtmxTests
     private async Task<Guid> SeedAsync(string name, Guid categoryId)
     {
         await using var db = _factory.CreateDbContext();
-        var product = Product.Create(NewSku(), name, null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
+        var product = Product.Create(NewSku(), name, null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
         db.Products.Add(product);
         await db.SaveChangesAsync();
         return product.Id;

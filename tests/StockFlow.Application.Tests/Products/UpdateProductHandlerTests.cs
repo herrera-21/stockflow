@@ -13,7 +13,7 @@ public class UpdateProductHandlerTests
 {
     // Builds a persisted product for the update scenarios.
     private static Product NewProduct(Guid categoryId, string sku = "SKU-001", decimal initialStock = 5) =>
-        Product.Create(sku, "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, initialStock, 2);
+        Product.Create(sku, "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, initialStock, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
 
     /// <summary>Updating with valid data changes editable fields but keeps current stock.</summary>
     [Fact]

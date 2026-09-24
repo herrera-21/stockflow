@@ -16,7 +16,7 @@ public class GetProductByIdHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         var categoryId = db.Categories.First().Id;
-        var product = Product.Create("SKU-001", "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
+        var product = Product.Create("SKU-001", "Test product", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
         db.Products.Add(product);
         await db.SaveChangesAsync();
 

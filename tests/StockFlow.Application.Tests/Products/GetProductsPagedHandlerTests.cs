@@ -12,7 +12,7 @@ public class GetProductsPagedHandlerTests
 {
     // Builds a product whose name is used as SKU unless one is provided.
     private static Product NewProduct(Guid categoryId, string name, string? sku = null) =>
-        Product.Create(sku ?? name, name, null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2);
+        Product.Create(sku ?? name, name, null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 5, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
 
     /// <summary>The requested page is ordered by name and reports the correct paging metadata.</summary>
     [Fact]
@@ -74,7 +74,7 @@ public class GetProductsPagedHandlerTests
         // Arrange
         await using var db = TestDbContextFactory.Create();
         var categoryId = db.Categories.First().Id;
-        db.Products.Add(Product.Create("SKU-001", "Low", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 2));
+        db.Products.Add(Product.Create("SKU-001", "Low", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 2, "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
         await db.SaveChangesAsync();
 
         var handler = new GetProductsPagedHandler(db);

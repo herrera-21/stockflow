@@ -12,7 +12,7 @@ public class ProductSupplierTests
 {
     // Builds a valid product for the association scenarios.
     private static Product CreateProduct() =>
-        Product.Create("SKU-001", "Test product", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
+        Product.Create("SKU-001", "Test product", null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
 
     /// <summary>Create with valid data sets the properties and is not preferred by default.</summary>
     [Fact]

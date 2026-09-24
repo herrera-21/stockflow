@@ -195,7 +195,7 @@ public class CategoryPagesTests
             categoryId = category.Id;
 
             var sku = "IT-" + Guid.NewGuid().ToString("N")[..8];
-            seedDb.Products.Add(Product.Create(sku, "Uses category", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 0));
+            seedDb.Products.Add(Product.Create(sku, "Uses category", null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 1, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch));
             await seedDb.SaveChangesAsync();
         }
 

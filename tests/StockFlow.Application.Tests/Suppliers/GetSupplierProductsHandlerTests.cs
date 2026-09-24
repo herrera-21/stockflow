@@ -13,7 +13,7 @@ public class GetSupplierProductsHandlerTests
 {
     // Builds a valid product with the given name and SKU.
     private static Product NewProduct(Guid categoryId, string name, string sku) =>
-        Product.Create(sku, name, null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
+        Product.Create(sku, name, null, categoryId, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
 
     // Builds a valid supplier.
     private static Supplier NewSupplier(string taxId) =>
@@ -78,7 +78,7 @@ public class GetSupplierProductsHandlerTests
         var supplier = NewSupplier("00000003-3");
         var product = Product.Create(
             "SKU-BOX", "Boxed product", null, categoryId,
-            UnitOfMeasure.Unit, UnitOfMeasure.Box, 24m, 20m, 2m, 13m, 0, 0);
+            UnitOfMeasure.Unit, UnitOfMeasure.Box, 24m, 20m, 2m, 13m, 0, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
         db.Suppliers.Add(supplier);
         db.Products.Add(product);
         await db.SaveChangesAsync();

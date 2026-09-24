@@ -216,7 +216,7 @@ public class SupplierProductsPageTests
     private async Task<Guid> SeedProductAsync(string name)
     {
         await using var db = _factory.CreateDbContext();
-        var product = Product.Create($"SKU-{Guid.NewGuid().ToString("N")[..8]}", name, null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0);
+        var product = Product.Create($"SKU-{Guid.NewGuid().ToString("N")[..8]}", name, null, CategoryIds.Other, UnitOfMeasure.Unit, UnitOfMeasure.Unit, 1m, 10m, 15m, 13m, 0, 0, "user-1", "user@test.local", DateTimeOffset.UnixEpoch);
         db.Products.Add(product);
         await db.SaveChangesAsync();
         return product.Id;

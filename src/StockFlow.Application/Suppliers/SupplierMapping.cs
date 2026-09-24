@@ -13,6 +13,7 @@ internal static class SupplierMapping
     public static SupplierDto ToDto(this Supplier supplier) => new(
         supplier.Id,
         supplier.Name,
+        supplier.DocumentType,
         supplier.TaxId,
         supplier.ContactName,
         supplier.Phone,

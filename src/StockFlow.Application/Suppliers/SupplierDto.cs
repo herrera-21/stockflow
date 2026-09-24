@@ -1,3 +1,5 @@
+using StockFlow.Domain;
+
 namespace StockFlow.Application.Suppliers;
 
 /// <summary>
@@ -5,7 +7,8 @@ namespace StockFlow.Application.Suppliers;
 /// </summary>
 /// <param name="Id">Unique identifier.</param>
 /// <param name="Name">Company name.</param>
-/// <param name="TaxId">Tax identification.</param>
+/// <param name="DocumentType">Type of the identity document.</param>
+/// <param name="TaxId">Identity document number.</param>
 /// <param name="ContactName">Optional contact person name.</param>
 /// <param name="Phone">Optional phone number.</param>
 /// <param name="Email">Optional email address.</param>
@@ -14,6 +17,7 @@ namespace StockFlow.Application.Suppliers;
 public record SupplierDto(
     Guid Id,
     string Name,
+    DocumentType DocumentType,
     string TaxId,
     string? ContactName,
     string? Phone,

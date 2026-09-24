@@ -57,6 +57,7 @@ public class GetSuppliersPagedHandler
             .Select(s => new SupplierDto(
                 s.Id,
                 s.Name,
+                s.DocumentType,
                 s.TaxId,
                 s.ContactName,
                 s.Phone,

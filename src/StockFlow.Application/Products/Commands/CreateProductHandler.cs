@@ -40,11 +40,23 @@ public class CreateProductHandler
             return OperationResult<ProductDto>.Failure(ProductErrorCodes.SkuAlreadyExists);
         }
 
+        var category = await _db.Categories
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == command.CategoryId && c.IsActive, cancellationToken);
+
+        if (category is null)
+        {
+            return OperationResult<ProductDto>.Failure(ProductErrorCodes.CategoryNotFound);
+        }
+
         var product = Product.Create(
             sku,
             command.Name,
             command.Description,
-            command.Category,
+            command.CategoryId,
+            command.BaseUnit,
+            command.PurchaseUnit,
+            command.PurchaseUnitFactor,
             command.PurchasePrice,
             command.SalePrice,
             command.TaxRate,
@@ -54,6 +66,6 @@ public class CreateProductHandler
         _db.Products.Add(product);
         await _db.SaveChangesAsync(cancellationToken);
 
-        return OperationResult<ProductDto>.Success(product.ToDto());
+        return OperationResult<ProductDto>.Success(product.ToDto(category));
     }
 }

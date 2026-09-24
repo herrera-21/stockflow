@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using StockFlow.Application.Categories.Commands;
+using StockFlow.Application.Categories.Queries;
 using StockFlow.Application.Customers.Commands;
 using StockFlow.Application.Customers.Queries;
 using StockFlow.Application.Products.Commands;
@@ -40,6 +42,14 @@ public static class DependencyInjection
         services.AddScoped<AssignSupplierProductHandler>();
         services.AddScoped<RemoveSupplierProductHandler>();
         services.AddScoped<GetSupplierProductsHandler>();
+
+        services.AddScoped<CreateCategoryHandler>();
+        services.AddScoped<UpdateCategoryHandler>();
+        services.AddScoped<DeactivateCategoryHandler>();
+        services.AddScoped<ActivateCategoryHandler>();
+        services.AddScoped<GetCategoriesHandler>();
+        services.AddScoped<GetCategoriesPagedHandler>();
+        services.AddScoped<GetCategoryByIdHandler>();
 
         return services;
     }

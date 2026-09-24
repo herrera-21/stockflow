@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Common.Interfaces;
 using StockFlow.Application.Common.Models;
+using StockFlow.Domain;
 
 namespace StockFlow.Application.Suppliers.Commands;
 
@@ -39,10 +40,10 @@ public class UpdateSupplierHandler
             return OperationResult<SupplierDto>.Failure(SupplierErrorCodes.NotFound);
         }
 
-        var taxId = command.TaxId.Trim();
+        var taxId = DocumentValidation.Normalize(command.DocumentType, command.TaxId);
 
         var taxIdAlreadyExists = await _db.Suppliers
-            .AnyAsync(s => s.TaxId == taxId && s.Id != command.Id, cancellationToken);
+            .AnyAsync(s => s.DocumentType == command.DocumentType && s.TaxId == taxId && s.Id != command.Id, cancellationToken);
 
         if (taxIdAlreadyExists)
         {
@@ -51,6 +52,7 @@ public class UpdateSupplierHandler
 
         supplier.Update(
             command.Name,
+            command.DocumentType,
             taxId,
             command.ContactName,
             command.Phone,

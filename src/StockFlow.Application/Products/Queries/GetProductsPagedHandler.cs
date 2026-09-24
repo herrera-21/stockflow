@@ -44,10 +44,9 @@ public class GetProductsPagedHandler
                 p.Name.ToLower().Contains(search) || p.Sku.ToLower().Contains(search));
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Category))
+        if (query.CategoryId is Guid categoryId && categoryId != Guid.Empty)
         {
-            var category = query.Category.Trim().ToLowerInvariant();
-            products = products.Where(p => p.Category.ToLower().Contains(category));
+            products = products.Where(p => p.CategoryId == categoryId);
         }
 
         var ordered = products.OrderBy(p => p.Name);
@@ -62,8 +61,14 @@ public class GetProductsPagedHandler
                 p.Sku,
                 p.Name,
                 p.Description,
-                p.Category,
+                p.CategoryId,
+                p.Category != null ? p.Category.Code : null,
+                p.Category != null ? p.Category.Name : string.Empty,
+                p.BaseUnit,
+                p.PurchaseUnit,
+                p.PurchaseUnitFactor,
                 p.PurchasePrice,
+                p.PurchasePrice / p.PurchaseUnitFactor,
                 p.SalePrice,
                 p.TaxRate,
                 p.CurrentStock,

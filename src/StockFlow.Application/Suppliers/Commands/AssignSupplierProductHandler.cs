@@ -63,6 +63,7 @@ public class AssignSupplierProductHandler
             product.Sku,
             association.SupplierSku,
             association.PurchasePrice,
+            product.PurchaseUnit,
             association.IsPreferred);
 
         return OperationResult<SupplierProductDto>.Success(dto);

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Common.Interfaces;
 using StockFlow.Application.Common.Models;
+using StockFlow.Domain;
 
 namespace StockFlow.Application.Customers.Commands;
 
@@ -39,10 +40,10 @@ public class UpdateCustomerHandler
             return OperationResult<CustomerDto>.Failure(CustomerErrorCodes.NotFound);
         }
 
-        var taxId = command.TaxId.Trim();
+        var taxId = DocumentValidation.Normalize(command.DocumentType, command.TaxId);
 
         var taxIdAlreadyExists = await _db.Customers
-            .AnyAsync(c => c.TaxId == taxId && c.Id != command.Id, cancellationToken);
+            .AnyAsync(c => c.DocumentType == command.DocumentType && c.TaxId == taxId && c.Id != command.Id, cancellationToken);
 
         if (taxIdAlreadyExists)
         {
@@ -51,6 +52,7 @@ public class UpdateCustomerHandler
 
         customer.Update(
             command.Name,
+            command.DocumentType,
             taxId,
             command.Phone,
             command.Email,

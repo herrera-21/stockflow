@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Common.Interfaces;
 using StockFlow.Application.Common.Models;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Customers.Commands;
@@ -31,10 +32,11 @@ public class CreateCustomerHandler
         CreateCustomerCommand command,
         CancellationToken cancellationToken = default)
     {
-        var taxId = command.TaxId.Trim();
+        // Normalized so "1234 567890 1234" and "1234-567890-1234" compare as the same document.
+        var taxId = DocumentValidation.Normalize(command.DocumentType, command.TaxId);
 
         var taxIdAlreadyExists = await _db.Customers
-            .AnyAsync(c => c.TaxId == taxId, cancellationToken);
+            .AnyAsync(c => c.DocumentType == command.DocumentType && c.TaxId == taxId, cancellationToken);
 
         if (taxIdAlreadyExists)
         {
@@ -43,6 +45,7 @@ public class CreateCustomerHandler
 
         var customer = Customer.Create(
             command.Name,
+            command.DocumentType,
             taxId,
             command.Phone,
             command.Email,

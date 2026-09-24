@@ -29,7 +29,9 @@ public class DeactivateProductHandler
         DeactivateProductCommand command,
         CancellationToken cancellationToken = default)
     {
+        // The category is loaded so the returned DTO can render the row without another query.
         var product = await _db.Products
+            .Include(p => p.Category)
             .FirstOrDefaultAsync(p => p.Id == command.Id, cancellationToken);
 
         if (product is null)

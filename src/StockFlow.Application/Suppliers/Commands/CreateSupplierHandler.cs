@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using StockFlow.Application.Common.Interfaces;
 using StockFlow.Application.Common.Models;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Application.Suppliers.Commands;
@@ -31,10 +32,11 @@ public class CreateSupplierHandler
         CreateSupplierCommand command,
         CancellationToken cancellationToken = default)
     {
-        var taxId = command.TaxId.Trim();
+        // Normalized so "1234 567890 1234" and "1234-567890-1234" compare as the same document.
+        var taxId = DocumentValidation.Normalize(command.DocumentType, command.TaxId);
 
         var taxIdAlreadyExists = await _db.Suppliers
-            .AnyAsync(s => s.TaxId == taxId, cancellationToken);
+            .AnyAsync(s => s.DocumentType == command.DocumentType && s.TaxId == taxId, cancellationToken);
 
         if (taxIdAlreadyExists)
         {
@@ -43,6 +45,7 @@ public class CreateSupplierHandler
 
         var supplier = Supplier.Create(
             command.Name,
+            command.DocumentType,
             taxId,
             command.ContactName,
             command.Phone,

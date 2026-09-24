@@ -13,6 +13,9 @@ public interface IAppDbContext
     /// <summary>Products set.</summary>
     DbSet<Product> Products { get; }
 
+    /// <summary>Categories set.</summary>
+    DbSet<Category> Categories { get; }
+
     /// <summary>Customers set.</summary>
     DbSet<Customer> Customers { get; }
 

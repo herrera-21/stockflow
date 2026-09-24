@@ -10,4 +10,10 @@ public static class ProductErrorCodes
 
     /// <summary>The requested product does not exist.</summary>
     public const string NotFound = "ProductNotFound";
+
+    /// <summary>The referenced category does not exist or is not active.</summary>
+    public const string CategoryNotFound = "CategoryNotFound";
+
+    /// <summary>The base unit cannot change while the product has stock.</summary>
+    public const string BaseUnitLocked = "ProductBaseUnitLocked";
 }

@@ -34,6 +34,7 @@ public class GetCustomerByIdHandler
             .Select(c => new CustomerDto(
                 c.Id,
                 c.Name,
+                c.DocumentType,
                 c.TaxId,
                 c.Phone,
                 c.Email,

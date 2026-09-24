@@ -44,6 +44,7 @@ public class GetSupplierProductsHandler
                 x.Product.Sku,
                 x.Association.SupplierSku,
                 x.Association.PurchasePrice,
+                x.Product.PurchaseUnit,
                 x.Association.IsPreferred))
             .ToListAsync(cancellationToken);
     }

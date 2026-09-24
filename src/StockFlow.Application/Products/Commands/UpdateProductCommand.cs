@@ -1,3 +1,5 @@
+using StockFlow.Domain;
+
 namespace StockFlow.Application.Products.Commands;
 
 /// <summary>
@@ -7,18 +9,24 @@ namespace StockFlow.Application.Products.Commands;
 /// <param name="Sku">Stock keeping unit; must be unique.</param>
 /// <param name="Name">Display name.</param>
 /// <param name="Description">Optional description.</param>
-/// <param name="Category">Category.</param>
-/// <param name="PurchasePrice">Supplier price.</param>
-/// <param name="SalePrice">Customer price.</param>
+/// <param name="CategoryId">Identifier of the product category.</param>
+/// <param name="BaseUnit">Unit for stock and sale price; can only change while there is no stock.</param>
+/// <param name="PurchaseUnit">Unit used when buying from suppliers.</param>
+/// <param name="PurchaseUnitFactor">Base units contained in one purchase unit.</param>
+/// <param name="PurchasePrice">Supplier price per purchase unit.</param>
+/// <param name="SalePrice">Customer price per base unit.</param>
 /// <param name="TaxRate">Tax percentage (0-100).</param>
-/// <param name="MinimumStock">Low-stock threshold.</param>
+/// <param name="MinimumStock">Low-stock threshold, in base units.</param>
 public record UpdateProductCommand(
     Guid Id,
     string Sku,
     string Name,
     string? Description,
-    string Category,
+    Guid CategoryId,
+    UnitOfMeasure BaseUnit,
+    UnitOfMeasure PurchaseUnit,
+    decimal PurchaseUnitFactor,
     decimal PurchasePrice,
     decimal SalePrice,
     decimal TaxRate,
-    int MinimumStock);
+    decimal MinimumStock);

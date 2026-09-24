@@ -1,3 +1,5 @@
+using StockFlow.Domain;
+
 namespace StockFlow.Application.Suppliers.Commands;
 
 /// <summary>
@@ -5,7 +7,8 @@ namespace StockFlow.Application.Suppliers.Commands;
 /// </summary>
 /// <param name="Id">Identifier of the supplier to update.</param>
 /// <param name="Name">Company name.</param>
-/// <param name="TaxId">Tax identification; must be unique.</param>
+/// <param name="DocumentType">Type of the identity document.</param>
+/// <param name="TaxId">Identity document number; unique per document type.</param>
 /// <param name="ContactName">Optional contact person name.</param>
 /// <param name="Phone">Optional phone number.</param>
 /// <param name="Email">Optional email address.</param>
@@ -13,6 +16,7 @@ namespace StockFlow.Application.Suppliers.Commands;
 public record UpdateSupplierCommand(
     Guid Id,
     string Name,
+    DocumentType DocumentType,
     string TaxId,
     string? ContactName,
     string? Phone,

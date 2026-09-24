@@ -3,67 +3,61 @@ using StockFlow.Application.Common.Interfaces;
 using StockFlow.Application.Common.Models;
 using StockFlow.Domain.Entities;
 
-namespace StockFlow.Application.Customers.Queries;
+namespace StockFlow.Application.Categories.Queries;
 
 /// <summary>
-/// Handles <see cref="GetCustomersPagedQuery"/>: filters, orders and pages customers in the database.
+/// Handles <see cref="GetCategoriesPagedQuery"/>: filters, orders and pages categories in the
+/// database, including how many products each one has.
 /// </summary>
-public class GetCustomersPagedHandler
+public class GetCategoriesPagedHandler
 {
     // Persistence abstraction used to build the query.
     private readonly IAppDbContext _db;
 
     /// <summary>Initializes the handler.</summary>
     /// <param name="db">Persistence abstraction.</param>
-    public GetCustomersPagedHandler(IAppDbContext db)
+    public GetCategoriesPagedHandler(IAppDbContext db)
     {
         _db = db;
     }
 
     /// <summary>
-    /// Returns the requested page of customers, applying the optional search filter.
+    /// Returns the requested page of categories, applying the optional name filter.
     /// </summary>
     /// <param name="query">Page number, page size and optional search text.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The page of matching customers.</returns>
-    public async Task<PagedResult<CustomerDto>> HandleAsync(
-        GetCustomersPagedQuery query,
+    /// <returns>The page of matching categories.</returns>
+    public async Task<PagedResult<CategoryDto>> HandleAsync(
+        GetCategoriesPagedQuery query,
         CancellationToken cancellationToken = default)
     {
         var page = query.Page < 1 ? 1 : query.Page;
         var pageSize = query.PageSize < 1 ? 10 : query.PageSize;
 
-        // Filtering and paging stay in the database; only the requested page is materialized.
-        IQueryable<Customer> customers = _db.Customers.AsNoTracking();
+        IQueryable<Category> categories = _db.Categories.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             // Lowercasing keeps the match case-insensitive across providers (SQL Server and InMemory).
             var search = query.Search.Trim().ToLowerInvariant();
-            customers = customers.Where(c =>
-                c.Name.ToLower().Contains(search)
-                || c.TaxId.ToLower().Contains(search)
-                || (c.Email != null && c.Email.ToLower().Contains(search)));
+            categories = categories.Where(c => c.Name.ToLower().Contains(search));
         }
 
-        var ordered = customers.OrderBy(c => c.Name);
+        var ordered = categories.OrderBy(c => c.Name);
 
         var totalCount = await ordered.CountAsync(cancellationToken);
 
         var items = await ordered
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(c => new CustomerDto(
+            .Select(c => new CategoryDto(
                 c.Id,
+                c.Code,
                 c.Name,
-                c.DocumentType,
-                c.TaxId,
-                c.Phone,
-                c.Email,
-                c.Address,
-                c.IsActive))
+                c.IsActive,
+                _db.Products.Count(p => p.CategoryId == c.Id)))
             .ToListAsync(cancellationToken);
 
-        return new PagedResult<CustomerDto>(items, page, pageSize, totalCount);
+        return new PagedResult<CategoryDto>(items, page, pageSize, totalCount);
     }
 }

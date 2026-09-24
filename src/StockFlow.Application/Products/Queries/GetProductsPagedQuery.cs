@@ -7,5 +7,5 @@ namespace StockFlow.Application.Products.Queries;
 /// <param name="Page">One-based page number.</param>
 /// <param name="PageSize">Maximum number of items per page.</param>
 /// <param name="Search">Optional text matched against name or SKU.</param>
-/// <param name="Category">Optional category filter.</param>
-public record GetProductsPagedQuery(int Page, int PageSize, string? Search = null, string? Category = null);
+/// <param name="CategoryId">Optional category identifier filter.</param>
+public record GetProductsPagedQuery(int Page, int PageSize, string? Search = null, Guid? CategoryId = null);

@@ -13,6 +13,7 @@ internal static class CustomerMapping
     public static CustomerDto ToDto(this Customer customer) => new(
         customer.Id,
         customer.Name,
+        customer.DocumentType,
         customer.TaxId,
         customer.Phone,
         customer.Email,

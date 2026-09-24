@@ -583,4 +583,10 @@
   <data name="PreferredSupplierHelp" xml:space="preserve">
     <value>The supplier you usually buy this product from. A product can have only one.</value>
   </data>
+  <data name="NavSectionInventory" xml:space="preserve">
+    <value>Inventory</value>
+  </data>
+  <data name="NavSectionCommercial" xml:space="preserve">
+    <value>Sales &amp; purchasing</value>
+  </data>
 </root>

@@ -8,7 +8,7 @@
 {
     <span class="app-user">@Localizer["WelcomeUser", UserManager.GetUserName(User) ?? string.Empty]</span>
     <form asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index")" method="post" class="d-inline">
-        <button type="submit" class="btn btn-link app-header-link">@Localizer["Logout"]</button>
+        <button type="submit" class="btn btn-sm app-header-button">@Localizer["Logout"]</button>
     </form>
 }
 else

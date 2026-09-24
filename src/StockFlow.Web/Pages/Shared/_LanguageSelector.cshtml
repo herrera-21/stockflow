@@ -1,21 +1,48 @@
 @using Microsoft.AspNetCore.Localization
-@using Microsoft.AspNetCore.Mvc.Rendering
+@using Microsoft.Extensions.Localization
 @using Microsoft.Extensions.Options
 @inject IOptions<RequestLocalizationOptions> LocOptions
+@inject IStringLocalizer<SharedResource> Localizer
 
 @{
     var requestCulture = Context.Features.Get<IRequestCultureFeature>();
     var currentCulture = requestCulture?.RequestCulture.UICulture.Name ?? "es";
-    var cultureItems = LocOptions.Value.SupportedUICultures!
-        .Select(c => new SelectListItem
-        {
-            Value = c.Name,
-            Text = c.Name == "es" ? "Español" : "English",
-            Selected = c.Name == currentCulture
-        })
+    // Language names are shown in their own language (endonyms), so they are not localized.
+    var cultures = LocOptions.Value.SupportedUICultures!
+        .Select(c => (Name: c.Name, Label: c.Name == "es" ? "Español" : "English"))
         .ToList();
+    var currentLabel = cultures.FirstOrDefault(c => c.Name == currentCulture).Label ?? currentCulture;
     var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path}{Context.Request.QueryString}";
 }
-<form asp-page="/SetLanguage" asp-route-returnUrl="@returnUrl" method="post" class="d-flex app-language">
-    <select name="culture" class="form-select form-select-sm" onchange="this.form.submit()" asp-items="cultureItems"></select>
+@* A Bootstrap dropdown instead of a native select: the native popup cannot be styled to match the
+   dark header. Each option is a submit button of the same SetLanguage form. *@
+<form asp-page="/SetLanguage" asp-route-returnUrl="@returnUrl" method="post" class="dropdown app-language">
+    <button type="button" class="app-header-button app-language-toggle dropdown-toggle"
+            data-bs-toggle="dropdown" aria-expanded="false"
+            aria-label="@Localizer["Language"]: @currentLabel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+        </svg>
+        <span>@currentLabel</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end app-language-menu">
+        @foreach (var culture in cultures)
+        {
+            var isCurrent = culture.Name == currentCulture;
+            <li>
+                <button type="submit" name="culture" value="@culture.Name"
+                        class="dropdown-item d-flex align-items-center justify-content-between gap-3 @(isCurrent ? "active" : "")"
+                        aria-current="@(isCurrent ? "true" : null)">
+                    <span>@culture.Label</span>
+                    @if (isCurrent)
+                    {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M5 12l5 5 9-10" />
+                        </svg>
+                    }
+                </button>
+            </li>
+        }
+    </ul>
 </form>

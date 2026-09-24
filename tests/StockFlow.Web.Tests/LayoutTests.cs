@@ -57,6 +57,60 @@ public class LayoutTests
         Assert.DoesNotContain("Privacidad", body);
     }
 
+    /// <summary>An administrator sees both navigation sections with their titles.</summary>
+    [Fact]
+    public async Task Shell_AsAdministrator_RendersBothNavigationSections()
+    {
+        // Arrange
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var body = System.Net.WebUtility.HtmlDecode(await client.GetStringAsync("/Products"));
+
+        // Assert
+        Assert.Contains("id=\"nav-section-inventory\">Inventario<", body);
+        Assert.Contains("id=\"nav-section-commercial\">Comercial<", body);
+        Assert.Contains(">Proveedores<", body);
+    }
+
+    /// <summary>
+    /// The language selector is a dropdown whose options submit the culture to SetLanguage, with the
+    /// current language marked.
+    /// </summary>
+    [Fact]
+    public async Task Shell_RendersLanguageDropdown()
+    {
+        // Arrange
+        var client = await CreateAuthenticatedClientAsync();
+
+        // Act
+        var body = System.Net.WebUtility.HtmlDecode(await client.GetStringAsync("/Products"));
+
+        // Assert
+        Assert.Contains("app-language-menu", body);
+        Assert.Contains("name=\"culture\" value=\"es\"", body);
+        Assert.Contains("name=\"culture\" value=\"en\"", body);
+        Assert.Matches("value=\"es\"[^>]*class=\"[^\"]*active", body);
+        Assert.DoesNotContain("<select name=\"culture\"", body);
+    }
+
+    /// <summary>A salesperson only sees the links of their role inside each section.</summary>
+    [Fact]
+    public async Task Shell_AsSalesperson_RendersOnlyAllowedLinks()
+    {
+        // Arrange
+        var client = await CreateAuthenticatedClientAsync(StockFlowWebFactory.SalesEmail, StockFlowWebFactory.SalesPassword);
+
+        // Act
+        var body = System.Net.WebUtility.HtmlDecode(await client.GetStringAsync("/Products"));
+
+        // Assert
+        Assert.Contains(">Productos<", body);
+        Assert.Contains(">Clientes<", body);
+        Assert.DoesNotContain(">Categorías<", body);
+        Assert.DoesNotContain(">Proveedores<", body);
+    }
+
     /// <summary>The shell renders the sidebar toggle, its state labels and the off-canvas backdrop.</summary>
     [Fact]
     public async Task Shell_RendersSidebarToggleAndBackdrop()
@@ -77,16 +131,19 @@ public class LayoutTests
         Assert.Contains("data-sidebar-backdrop", body);
     }
 
-    // Logs in with the seeded administrator and returns a client that does not follow redirects.
-    private async Task<HttpClient> CreateAuthenticatedClientAsync()
+    // Logs in with the given seeded account (the administrator by default) and returns a client
+    // that does not follow redirects.
+    private async Task<HttpClient> CreateAuthenticatedClientAsync(
+        string email = StockFlowWebFactory.AdminEmail,
+        string password = StockFlowWebFactory.AdminPassword)
     {
         var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         var token = await GetAntiforgeryTokenAsync(client, "/Account/Login");
 
         var response = await client.PostAsync("/Account/Login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["Input.Email"] = StockFlowWebFactory.AdminEmail,
-            ["Input.Password"] = StockFlowWebFactory.AdminPassword,
+            ["Input.Email"] = email,
+            ["Input.Password"] = password,
             ["__RequestVerificationToken"] = token
         }));
 

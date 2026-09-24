@@ -33,6 +33,9 @@ public class AppDbContext : IdentityDbContext<IdentityUser, IdentityRole, string
     /// <summary>Product-supplier associations set.</summary>
     public DbSet<ProductSupplier> ProductSuppliers => Set<ProductSupplier>();
 
+    /// <summary>Inventory movements set.</summary>
+    public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
+
     /// <summary>
     /// Applies all entity type configurations declared in this assembly.
     /// </summary>
@@ -41,5 +44,16 @@ public class AppDbContext : IdentityDbContext<IdentityUser, IdentityRole, string
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        // SQL Server exposes <see cref="Product.RowVersion"/> as a real rowversion column, which EF
+        // Core uses for optimistic concurrency. The InMemory provider used by handler unit tests does
+        // not generate rowversion values, so the token is only marked as a concurrency token when the
+        // provider supports it; otherwise every child insert would be flagged as a conflict.
+        if (Database.IsSqlServer())
+        {
+            modelBuilder.Entity<Product>()
+                .Property(p => p.RowVersion)
+                .IsRowVersion();
+        }
     }
 }

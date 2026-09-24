@@ -20,11 +20,10 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             table.HasCheckConstraint("CK_Products_PurchasePrice", "[PurchasePrice] >= 0");
             table.HasCheckConstraint("CK_Products_SalePrice", "[SalePrice] >= 0");
             table.HasCheckConstraint("CK_Products_TaxRate", "[TaxRate] >= 0 AND [TaxRate] <= 100");
-            table.HasCheckConstraint("CK_Products_CurrentStock", QuantityCheck("CurrentStock"));
-            table.HasCheckConstraint("CK_Products_MinimumStock", QuantityCheck("MinimumStock"));
+            table.HasCheckConstraint("CK_Products_CurrentStock", QuantityCheckSql.NonNegativeWhole("CurrentStock"));
+            table.HasCheckConstraint("CK_Products_MinimumStock", QuantityCheckSql.NonNegativeWhole("MinimumStock"));
             table.HasCheckConstraint("CK_Products_PurchaseUnitFactor",
-                $"[PurchaseUnitFactor] > 0 AND ([BaseUnit] NOT IN ({CountableUnits()}) " +
-                "OR [PurchaseUnitFactor] = FLOOR([PurchaseUnitFactor]))");
+                QuantityCheckSql.PositiveWhole("PurchaseUnitFactor"));
         });
 
         builder.HasKey(p => p.Id);
@@ -77,6 +76,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.IsActive)
             .IsRequired();
 
+        // RowVersion is mapped as a real rowversion and marked as the concurrency token by
+        // AppDbContext.OnModelCreating, which can check the provider (SQL Server versus InMemory).
+
         builder.HasIndex(p => p.Sku)
             .IsUnique();
 
@@ -89,20 +91,12 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .OnDelete(DeleteBehavior.Restrict)
             .IsRequired();
 
+        // Movements are read back through the backing field, not through the exposed read-only list.
+        builder.Navigation(p => p.Movements)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         // Derived in-memory helpers, not persisted columns.
         builder.Ignore(p => p.HasLowStock);
         builder.Ignore(p => p.UnitCost);
     }
-
-    // SQL check for a stock column: never negative and whole for countable base units, mirroring
-    // the domain invariant.
-    private static string QuantityCheck(string column) =>
-        $"[{column}] >= 0 AND ([BaseUnit] NOT IN ({CountableUnits()}) OR [{column}] = FLOOR([{column}]))";
-
-    // Quoted SQL list of the units that only take whole quantities, derived from the domain rule so
-    // both stay in sync.
-    private static string CountableUnits() =>
-        string.Join(", ", Enum.GetValues<UnitOfMeasure>()
-            .Where(unit => !unit.AllowsFractions())
-            .Select(unit => $"'{unit}'"));
 }

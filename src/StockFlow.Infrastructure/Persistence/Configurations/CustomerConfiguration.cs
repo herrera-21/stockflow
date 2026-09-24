@@ -21,6 +21,11 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.Property(c => c.DocumentType)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         builder.Property(c => c.TaxId)
             .IsRequired()
             .HasMaxLength(50);
@@ -37,7 +42,9 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.Property(c => c.IsActive)
             .IsRequired();
 
-        builder.HasIndex(c => c.TaxId)
+        // A document is unique per type: the same digits can be a DUI for one customer and, in
+        // theory, part of a NIT for another.
+        builder.HasIndex(c => new { c.DocumentType, c.TaxId })
             .IsUnique();
 
         builder.HasIndex(c => c.Name);

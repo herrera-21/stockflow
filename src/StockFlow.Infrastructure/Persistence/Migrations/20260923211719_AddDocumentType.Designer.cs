@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StockFlow.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using StockFlow.Infrastructure.Persistence;
 namespace StockFlow.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923211719_AddDocumentType")]
+    partial class AddDocumentType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -356,19 +359,11 @@ namespace StockFlow.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("BaseUnit")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Unit");
-
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("CurrentStock")
-                        .HasPrecision(18, 3)
-                        .HasColumnType("decimal(18,3)");
+                    b.Property<int>("CurrentStock")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
@@ -377,9 +372,8 @@ namespace StockFlow.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<decimal>("MinimumStock")
-                        .HasPrecision(18, 3)
-                        .HasColumnType("decimal(18,3)");
+                    b.Property<int>("MinimumStock")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -389,19 +383,6 @@ namespace StockFlow.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("PurchasePrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PurchaseUnit")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Unit");
-
-                    b.Property<decimal>("PurchaseUnitFactor")
-                        .ValueGeneratedOnAdd()
-                        .HasPrecision(18, 4)
-                        .HasColumnType("decimal(18,4)")
-                        .HasDefaultValue(1m);
 
                     b.Property<decimal>("SalePrice")
                         .HasPrecision(18, 2)
@@ -425,13 +406,11 @@ namespace StockFlow.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Products", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Products_CurrentStock", "[CurrentStock] >= 0 AND ([BaseUnit] NOT IN ('Unit', 'Dozen', 'Box', 'Pack') OR [CurrentStock] = FLOOR([CurrentStock]))");
+                            t.HasCheckConstraint("CK_Products_CurrentStock", "[CurrentStock] >= 0");
 
-                            t.HasCheckConstraint("CK_Products_MinimumStock", "[MinimumStock] >= 0 AND ([BaseUnit] NOT IN ('Unit', 'Dozen', 'Box', 'Pack') OR [MinimumStock] = FLOOR([MinimumStock]))");
+                            t.HasCheckConstraint("CK_Products_MinimumStock", "[MinimumStock] >= 0");
 
                             t.HasCheckConstraint("CK_Products_PurchasePrice", "[PurchasePrice] >= 0");
-
-                            t.HasCheckConstraint("CK_Products_PurchaseUnitFactor", "[PurchaseUnitFactor] > 0 AND ([BaseUnit] NOT IN ('Unit', 'Dozen', 'Box', 'Pack') OR [PurchaseUnitFactor] = FLOOR([PurchaseUnitFactor]))");
 
                             t.HasCheckConstraint("CK_Products_SalePrice", "[SalePrice] >= 0");
 

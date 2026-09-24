@@ -21,6 +21,9 @@ public class AppDbContext : IdentityDbContext<IdentityUser, IdentityRole, string
     /// <summary>Products set.</summary>
     public DbSet<Product> Products => Set<Product>();
 
+    /// <summary>Categories set.</summary>
+    public DbSet<Category> Categories => Set<Category>();
+
     /// <summary>Customers set.</summary>
     public DbSet<Customer> Customers => Set<Customer>();
 

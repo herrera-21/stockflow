@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using StockFlow.Domain;
 using StockFlow.Domain.Entities;
 
 namespace StockFlow.Infrastructure.Persistence.Configurations;
@@ -19,8 +20,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             table.HasCheckConstraint("CK_Products_PurchasePrice", "[PurchasePrice] >= 0");
             table.HasCheckConstraint("CK_Products_SalePrice", "[SalePrice] >= 0");
             table.HasCheckConstraint("CK_Products_TaxRate", "[TaxRate] >= 0 AND [TaxRate] <= 100");
-            table.HasCheckConstraint("CK_Products_CurrentStock", "[CurrentStock] >= 0");
-            table.HasCheckConstraint("CK_Products_MinimumStock", "[MinimumStock] >= 0");
+            table.HasCheckConstraint("CK_Products_CurrentStock", QuantityCheck("CurrentStock"));
+            table.HasCheckConstraint("CK_Products_MinimumStock", QuantityCheck("MinimumStock"));
+            table.HasCheckConstraint("CK_Products_PurchaseUnitFactor",
+                $"[PurchaseUnitFactor] > 0 AND ([BaseUnit] NOT IN ({CountableUnits()}) " +
+                "OR [PurchaseUnitFactor] = FLOOR([PurchaseUnitFactor]))");
         });
 
         builder.HasKey(p => p.Id);
@@ -36,9 +40,22 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Description)
             .HasMaxLength(1000);
 
-        builder.Property(p => p.Category)
+        // Units are stored as text; existing rows default to a plain unit bought and sold as is.
+        builder.Property(p => p.BaseUnit)
             .IsRequired()
-            .HasMaxLength(100);
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(UnitOfMeasure.Unit);
+
+        builder.Property(p => p.PurchaseUnit)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(UnitOfMeasure.Unit);
+
+        builder.Property(p => p.PurchaseUnitFactor)
+            .HasPrecision(18, 4)
+            .HasDefaultValue(1m);
 
         builder.Property(p => p.PurchasePrice)
             .HasPrecision(18, 2);
@@ -50,9 +67,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasPrecision(5, 2);
 
         builder.Property(p => p.CurrentStock)
+            .HasPrecision(18, 3)
             .IsRequired();
 
         builder.Property(p => p.MinimumStock)
+            .HasPrecision(18, 3)
             .IsRequired();
 
         builder.Property(p => p.IsActive)
@@ -61,9 +80,29 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(p => p.Sku)
             .IsUnique();
 
-        builder.HasIndex(p => p.Category);
+        builder.HasIndex(p => p.CategoryId);
 
-        // Derived in-memory helper, not a persisted column.
+        // Restrict: a category in use cannot be deleted at the database level either.
+        builder.HasOne(p => p.Category)
+            .WithMany()
+            .HasForeignKey(p => p.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired();
+
+        // Derived in-memory helpers, not persisted columns.
         builder.Ignore(p => p.HasLowStock);
+        builder.Ignore(p => p.UnitCost);
     }
+
+    // SQL check for a stock column: never negative and whole for countable base units, mirroring
+    // the domain invariant.
+    private static string QuantityCheck(string column) =>
+        $"[{column}] >= 0 AND ([BaseUnit] NOT IN ({CountableUnits()}) OR [{column}] = FLOOR([{column}]))";
+
+    // Quoted SQL list of the units that only take whole quantities, derived from the domain rule so
+    // both stay in sync.
+    private static string CountableUnits() =>
+        string.Join(", ", Enum.GetValues<UnitOfMeasure>()
+            .Where(unit => !unit.AllowsFractions())
+            .Select(unit => $"'{unit}'"));
 }

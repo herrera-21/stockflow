@@ -21,6 +21,11 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.Property(s => s.DocumentType)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
         builder.Property(s => s.TaxId)
             .IsRequired()
             .HasMaxLength(50);
@@ -40,7 +45,9 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
         builder.Property(s => s.IsActive)
             .IsRequired();
 
-        builder.HasIndex(s => s.TaxId)
+        // A document is unique per type: the same digits can be a DUI for one supplier and, in
+        // theory, part of a NIT for another.
+        builder.HasIndex(s => new { s.DocumentType, s.TaxId })
             .IsUnique();
 
         builder.HasIndex(s => s.Name);

@@ -6,13 +6,14 @@ using StockFlow.Domain;
 namespace StockFlow.Infrastructure.Identity;
 
 /// <summary>
-/// Seeds the fixed application roles and, when configured, a single administrator account. Safe to
-/// run on every startup because it only creates what is missing.
+/// Seeds the fixed application roles and, when configured, one test account per role. Safe to run on
+/// every startup because it only creates what is missing.
 /// </summary>
 public static class IdentitySeeder
 {
     /// <summary>
-    /// Ensures the known roles exist and creates the seed administrator when credentials are set.
+    /// Ensures the known roles exist and creates the configured seed users. Each user is described by
+    /// an email, a password and a role under the <c>SeedUsers</c> configuration section.
     /// </summary>
     /// <param name="services">Scoped service provider used to resolve the Identity managers.</param>
     public static async Task SeedAsync(IServiceProvider services)
@@ -29,32 +30,36 @@ public static class IdentitySeeder
             }
         }
 
-        var adminEmail = configuration["SeedAdmin:Email"];
-        var adminPassword = configuration["SeedAdmin:Password"];
-
-        // No seed credentials configured (e.g. a Production-like environment without SeedAdmin
-        // set): skip user creation instead of seeding a predictable account.
-        if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+        foreach (var seedUser in configuration.GetSection("SeedUsers").GetChildren())
         {
-            return;
-        }
+            var email = seedUser["Email"];
+            var password = seedUser["Password"];
+            var role = seedUser["Role"];
 
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-        if (adminUser is null)
-        {
-            adminUser = new IdentityUser
+            // Skip entries without credentials (e.g. a Production-like environment without SeedUsers
+            // set): never seed a predictable account.
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                UserName = adminEmail,
-                Email = adminEmail,
-                EmailConfirmed = true
-            };
+                continue;
+            }
 
-            await userManager.CreateAsync(adminUser, adminPassword);
-        }
+            var user = await userManager.FindByEmailAsync(email);
+            if (user is null)
+            {
+                user = new IdentityUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
 
-        if (!await userManager.IsInRoleAsync(adminUser, ApplicationRoles.Administrator))
-        {
-            await userManager.AddToRoleAsync(adminUser, ApplicationRoles.Administrator);
+                await userManager.CreateAsync(user, password);
+            }
+
+            if (!string.IsNullOrWhiteSpace(role) && !await userManager.IsInRoleAsync(user, role))
+            {
+                await userManager.AddToRoleAsync(user, role);
+            }
         }
     }
 }

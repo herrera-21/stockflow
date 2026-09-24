@@ -25,6 +25,9 @@ public interface IAppDbContext
     /// <summary>Product-supplier associations set.</summary>
     DbSet<ProductSupplier> ProductSuppliers { get; }
 
+    /// <summary>Inventory movements set.</summary>
+    DbSet<InventoryMovement> InventoryMovements { get; }
+
     /// <summary>Persists pending changes to the database.</summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The number of state entries written to the database.</returns>

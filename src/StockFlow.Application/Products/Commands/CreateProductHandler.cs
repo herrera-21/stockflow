@@ -6,18 +6,29 @@ using StockFlow.Domain.Entities;
 namespace StockFlow.Application.Products.Commands;
 
 /// <summary>
-/// Handles <see cref="CreateProductCommand"/>: rejects duplicate SKUs and persists a new product.
+/// Handles <see cref="CreateProductCommand"/>: rejects duplicate SKUs and persists a new product,
+/// recording its opening stock as the first inventory movement.
 /// </summary>
 public class CreateProductHandler
 {
     // Persistence abstraction used to check SKU uniqueness and save the new product.
     private readonly IAppDbContext _db;
 
+    // Current user that the opening movement is attributed to.
+    private readonly ICurrentUser _currentUser;
+
+    // Clock used to stamp the opening movement.
+    private readonly TimeProvider _timeProvider;
+
     /// <summary>Initializes the handler.</summary>
     /// <param name="db">Persistence abstraction.</param>
-    public CreateProductHandler(IAppDbContext db)
+    /// <param name="currentUser">Current user that creates the product.</param>
+    /// <param name="timeProvider">Clock used to stamp the opening movement.</param>
+    public CreateProductHandler(IAppDbContext db, ICurrentUser currentUser, TimeProvider timeProvider)
     {
         _db = db;
+        _currentUser = currentUser;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -61,7 +72,10 @@ public class CreateProductHandler
             command.SalePrice,
             command.TaxRate,
             command.InitialStock,
-            command.MinimumStock);
+            command.MinimumStock,
+            _currentUser.UserId ?? "system",
+            _currentUser.UserName ?? "system",
+            _timeProvider.GetUtcNow());
 
         _db.Products.Add(product);
         await _db.SaveChangesAsync(cancellationToken);

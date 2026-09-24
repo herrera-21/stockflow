@@ -3,6 +3,8 @@ using StockFlow.Application.Categories.Commands;
 using StockFlow.Application.Categories.Queries;
 using StockFlow.Application.Customers.Commands;
 using StockFlow.Application.Customers.Queries;
+using StockFlow.Application.Inventory.Commands;
+using StockFlow.Application.Inventory.Queries;
 using StockFlow.Application.Products.Commands;
 using StockFlow.Application.Products.Queries;
 using StockFlow.Application.Suppliers.Commands;
@@ -16,17 +18,24 @@ namespace StockFlow.Application;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Adds the product, customer and supplier command and query handlers to the service collection.
+    /// Adds the product, inventory, customer and supplier command and query handlers to the service
+    /// collection, together with the system clock.
     /// </summary>
     /// <param name="services">The service collection to register into.</param>
     /// <returns>The same service collection, to allow chaining.</returns>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        // Time abstraction so handlers can be tested with a deterministic clock.
+        services.AddSingleton(TimeProvider.System);
+
         services.AddScoped<CreateProductHandler>();
         services.AddScoped<UpdateProductHandler>();
         services.AddScoped<DeactivateProductHandler>();
         services.AddScoped<GetProductsPagedHandler>();
         services.AddScoped<GetProductByIdHandler>();
+
+        services.AddScoped<AdjustStockHandler>();
+        services.AddScoped<GetMovementsPagedHandler>();
 
         services.AddScoped<CreateCustomerHandler>();
         services.AddScoped<UpdateCustomerHandler>();

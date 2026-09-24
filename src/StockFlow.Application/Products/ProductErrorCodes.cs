@@ -16,4 +16,7 @@ public static class ProductErrorCodes
 
     /// <summary>The base unit cannot change while the product has stock.</summary>
     public const string BaseUnitLocked = "ProductBaseUnitLocked";
+
+    /// <summary>The product changed between reading and saving; the operation must be retried.</summary>
+    public const string ConcurrencyConflict = "ProductConcurrencyConflict";
 }

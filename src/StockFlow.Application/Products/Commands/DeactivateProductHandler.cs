@@ -40,7 +40,16 @@ public class DeactivateProductHandler
         }
 
         product.Deactivate();
-        await _db.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another operation changed the product between the read and the save.
+            return OperationResult<ProductDto>.Failure(ProductErrorCodes.ConcurrencyConflict);
+        }
 
         return OperationResult<ProductDto>.Success(product.ToDto());
     }

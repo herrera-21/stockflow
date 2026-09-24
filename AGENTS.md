@@ -69,11 +69,14 @@ Run from the repository root.
 - The SQL Server `SA_PASSWORD` is defined directly in `docker-compose.yml` (a dev-only value). There
   is no `.env` file; do not add one for the database.
 - SQL Server data persists in the `sqlserver-data` Docker volume; reset with `docker compose down -v`.
-- No EF Core connection string exists in `appsettings*.json` yet; add it when wiring Infrastructure.
+- The EF Core connection string (`DefaultConnection`) lives in `appsettings.Development.json` and
+  matches `docker-compose.yml`. The app applies pending migrations on startup (`DatabaseInitializer`).
 
 ## Testing conventions
 
-- xUnit. Place tests under `tests/` as `StockFlow.<Layer>.Tests` projects (none exist yet).
+- xUnit. Tests live under `tests/` as `StockFlow.<Layer>.Tests` projects: `Domain.Tests` (unit),
+  `Application.Tests` (handlers, EF Core InMemory) and `Web.Tests` (integration, real SQL Server in
+  its own `StockFlowDb_Test` database).
 - Integration tests must exercise the real SQL Server from `docker-compose`, not an in-memory provider.
 - Register new test projects in `StockFlow.slnx`.
 
@@ -81,6 +84,8 @@ Run from the repository root.
 
 - `.claude/skills/` is committed and shared with the team. `.claude/scheduled_tasks.lock` is runtime
   state and gitignored; never commit it.
-- Current status: scaffolding only (default Razor Pages, placeholder classes). Business features
-  (inventory, purchases, sales, invoicing) are not implemented yet.
+- Current status: phases 1-3 done (products, customers/suppliers, inventory). Inventory movements are
+  the only way stock changes; there is a per-product `rowversion` for optimistic concurrency, an
+  `ICurrentUser` abstraction and an injected `TimeProvider`. Purchases, sales and invoicing are not
+  implemented yet.
 - UI stack: Razor Pages + Bootstrap 5 + jQuery from `wwwroot/lib`; there is no npm build step.

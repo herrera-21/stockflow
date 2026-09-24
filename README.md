@@ -29,7 +29,14 @@ Modular monolith, single repository, layered from the start:
 ## Business rules
 
 - **Inventory:** stock can only change through inventory movements (purchase, sale, adjustment,
-  return) — it is never edited directly.
+  return) — it is never edited directly. A movement records the user, timestamp, type, reason, the
+  stock before and after, and the unit; the stock and the movement are saved atomically. Stock never
+  goes negative, quantities are always positive, countable units only take whole numbers, and
+  inactive products accept no movements. Creating a product with opening stock records an
+  initial-balance movement.
+- **Concurrency:** each product carries a rowversion; two simultaneous operations cannot silently
+  overwrite each other's stock. The second save is rejected with a clear, localized "reload and try
+  again" message.
 - **Sales:** a confirmed sale cannot be modified directly; canceling it reverts the inventory.
 - **Returns:** the returned quantity cannot exceed the originally sold quantity minus previous
   returns.
@@ -58,7 +65,9 @@ Products are managed through the `CanManageProducts` authorization policy, which
 to Administrator and InventoryManager; Salesperson has read-only access to the catalog. Customers
 and suppliers use the `CanManageCustomers` (Administrator, Salesperson) and `CanManageSuppliers`
 (Administrator, InventoryManager) policies respectively. Categories use `CanManageCategories`, which
-is restricted to Administrator because they define the shared catalog.
+is restricted to Administrator because they define the shared catalog. Stock adjustments use
+`CanAdjustInventory` (Administrator, InventoryManager); the movement history is visible to anyone who
+can see products.
 
 ## Requirements
 
@@ -140,7 +149,7 @@ stockflow/
 
 ## Status
 
-Phases 1 (products) and 2 (customers and suppliers) are functionally complete.
+Phases 1 (products), 2 (customers and suppliers) and 3 (inventory) are functionally complete.
 
 - **Products:** model, EF Core mapping and migration, CRUD (list with pagination, create, edit,
   soft-delete) with role-based access, live search/filtering by name, SKU and category, and a
@@ -152,6 +161,13 @@ Phases 1 (products) and 2 (customers and suppliers) are functionally complete.
   it. Stock is decimal, so bulk products can hold fractions (2.5 lb); countable units (unit, dozen,
   box, pack) only accept whole quantities, enforced in the domain, the form and the database. The
   sales unit can only change while the product has no stock.
+- **Inventory:** every stock change is an `InventoryMovement` (opening balance, purchase, sale,
+  sale cancellation, positive/negative adjustment, customer/supplier return) with the user,
+  timestamp, reason, note, reference and the stock before and after. The product list offers
+  "Adjust stock" (increase/decrease, quantity in the base unit, reason and note, with a live
+  "current stock to resulting stock" preview) and "Movements" (per-product history paginated with
+  htmx). Stock is never edited directly, never goes negative and only changes together with its
+  movement in a single save; products created before this phase have no opening movement.
 - **Categories:** their own table and CRUD (list, create, edit, deactivate/reactivate), restricted to
   Administrator. A category cannot be deactivated while products are associated with it. The seeded
   categories (cleaning, beverages, food, snacks, dairy, bakery, personal care, other) are shown with
@@ -168,6 +184,6 @@ Phases 1 (products) and 2 (customers and suppliers) are functionally complete.
   number is formatted automatically as it is typed.
 
 Search, filtering, pagination and soft deletes run over htmx (vendored in `wwwroot/lib/htmx`, no npm
-build step), without full page reloads, and are covered by unit and integration tests. Inventory,
-purchases, sales and invoicing are not implemented yet.
+build step), without full page reloads, and are covered by unit and integration tests. Purchases,
+sales and invoicing are not implemented yet.
 

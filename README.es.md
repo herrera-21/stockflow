@@ -13,6 +13,7 @@ que modela inventario, compras, ventas y facturación electrónica simulada.
 - ASP.NET Core Identity
 - Bootstrap
 - htmx (vendorizado, sin paso de build npm)
+- Tom Select (vendorizado, selector de categoría buscable)
 - Docker / Docker Compose
 - xUnit
 
@@ -28,7 +29,14 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
 ## Reglas de negocio
 
 - **Inventario:** el stock solo puede cambiar mediante movimientos de inventario (compra, venta,
-  ajuste, devolución) — nunca se edita directo.
+  ajuste, devolución) — nunca se edita directo. Cada movimiento registra el usuario, la fecha, el
+  tipo, el motivo, el stock anterior y resultante y la unidad; el stock y el movimiento se guardan de
+  forma atómica. El stock nunca queda negativo, las cantidades son siempre positivas, las unidades
+  contables solo admiten enteros y los productos inactivos no aceptan movimientos. Crear un producto
+  con stock inicial registra un movimiento de saldo inicial.
+- **Concurrencia:** cada producto lleva un rowversion; dos operaciones simultáneas no pueden pisarse
+  el stock sin darse cuenta. El segundo guardado se rechaza con un mensaje claro y localizado de
+  "recarga e inténtalo de nuevo".
 - **Ventas:** una venta confirmada no puede modificarse directamente; cancelarla revierte el
   inventario.
 - **Devoluciones:** la cantidad devuelta no puede superar la cantidad originalmente vendida menos
@@ -58,7 +66,9 @@ Los productos se gestionan mediante la política de autorización `CanManageProd
 solo a Administrator e InventoryManager; Salesperson tiene acceso de solo lectura al catálogo. Los
 clientes y los proveedores usan las políticas `CanManageCustomers` (Administrator, Salesperson) y
 `CanManageSuppliers` (Administrator, InventoryManager) respectivamente. Las categorías usan
-`CanManageCategories`, restringida a Administrator porque definen el catálogo compartido.
+`CanManageCategories`, restringida a Administrator porque definen el catálogo compartido. Los ajustes
+de stock usan `CanAdjustInventory` (Administrator, InventoryManager); el historial de movimientos lo
+ve cualquiera que pueda ver productos.
 
 ## Requisitos
 
@@ -140,7 +150,7 @@ stockflow/
 
 ## Estado
 
-Las Fases 1 (productos) y 2 (clientes y proveedores) están funcionalmente completas.
+Las Fases 1 (productos), 2 (clientes y proveedores) y 3 (inventario) están funcionalmente completas.
 
 - **Productos:** modelo, mapeo EF Core y migración, CRUD (listado con paginación, crear, editar, baja
   lógica) con acceso por rol, búsqueda y filtrado en vivo por nombre, SKU y categoría, e indicador de
@@ -153,6 +163,14 @@ Las Fases 1 (productos) y 2 (clientes y proveedores) están funcionalmente compl
   admiten fracciones (2.5 lb); las unidades contables (unidad, docena, caja, paquete) solo aceptan
   cantidades enteras, regla que se valida en el dominio, el formulario y la base de datos. La unidad
   de venta solo se puede cambiar si el producto no tiene stock.
+- **Inventario:** cada cambio de stock es un `InventoryMovement` (saldo inicial, compra, venta,
+  cancelación de venta, ajuste positivo/negativo, devolución de cliente/proveedor) con el usuario, la
+  fecha, el motivo, la nota, la referencia y el stock anterior y resultante. El listado de productos
+  ofrece "Ajustar stock" (aumentar/disminuir, cantidad en la unidad base, motivo y nota, con una vista
+  previa en vivo de "stock actual a stock resultante") y "Movimientos" (historial por producto
+  paginado con htmx). El stock nunca se edita directo, nunca queda negativo y solo cambia junto a su
+  movimiento en un solo guardado; los productos creados antes de esta fase no tienen movimiento de
+  saldo inicial.
 - **Categorías:** tabla propia y CRUD (listar, crear, editar, desactivar/reactivar), restringido a
   Administrator. Una categoría no se puede desactivar mientras tenga productos asociados. Las
   categorías sembradas (limpieza, bebidas, alimentos, snacks, lácteos, panadería, cuidado personal,
@@ -170,4 +188,4 @@ Las Fases 1 (productos) y 2 (clientes y proveedores) están funcionalmente compl
 
 La búsqueda, el filtrado, la paginación y las bajas lógicas funcionan con htmx (vendorizado en
 `wwwroot/lib/htmx`, sin paso de build npm), sin recargar la página, y están cubiertos por pruebas
-unitarias y de integración. Inventario, compras, ventas y facturación aún no están implementados.
+unitarias y de integración. Compras, ventas y facturación aún no están implementados.

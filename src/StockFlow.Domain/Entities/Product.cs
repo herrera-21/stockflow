@@ -11,6 +11,9 @@ public class Product
     // Suppliers that offer this product (many-to-many through ProductSupplier).
     private readonly List<ProductSupplier> _suppliers = [];
 
+    // Inventory movements that changed this product's stock, oldest first.
+    private readonly List<InventoryMovement> _movements = [];
+
     // EF Core materialization constructor.
     private Product()
     {
@@ -96,6 +99,13 @@ public class Product
     /// <summary>Whether the product is active (soft-delete flag).</summary>
     public bool IsActive { get; private set; }
 
+    /// <summary>
+    /// Optimistic concurrency token. EF Core maps it to a SQL Server <c>rowversion</c> column and
+    /// checks it on every update, so two simultaneous operations cannot silently overwrite the
+    /// stock.
+    /// </summary>
+    public byte[] RowVersion { get; private set; } = [];
+
     /// <summary>True when the product is at or below its minimum stock level.</summary>
     public bool HasLowStock => CurrentStock <= MinimumStock;
 
@@ -104,6 +114,9 @@ public class Product
 
     /// <summary>Suppliers that offer this product.</summary>
     public IReadOnlyList<ProductSupplier> Suppliers => _suppliers;
+
+    /// <summary>Inventory movements that changed this product's stock, oldest first.</summary>
+    public IReadOnlyList<InventoryMovement> Movements => _movements;
 
     /// <summary>
     /// Creates a new active product with the given opening stock.
@@ -123,8 +136,15 @@ public class Product
     /// <param name="taxRate">Tax percentage (0-100).</param>
     /// <param name="initialStock">Opening balance in base units; cannot be negative.</param>
     /// <param name="minimumStock">Low-stock threshold in base units; cannot be negative.</param>
+    /// <param name="userId">Identifier of the user creating the product, for the opening movement.</param>
+    /// <param name="userName">Display name of that user, for the opening movement.</param>
+    /// <param name="occurredAt">Instant the product was created, for the opening movement.</param>
     /// <returns>The created product.</returns>
     /// <exception cref="DomainException">When any invariant is violated.</exception>
+    /// <remarks>
+    /// A positive opening stock records an <see cref="InventoryMovementType.InitialBalance"/>
+    /// movement. Products created before this rule existed have no opening movement.
+    /// </remarks>
     public static Product Create(
         string sku,
         string name,
@@ -137,16 +157,20 @@ public class Product
         decimal salePrice,
         decimal taxRate,
         decimal initialStock,
-        decimal minimumStock)
+        decimal minimumStock,
+        string userId,
+        string userName,
+        DateTimeOffset occurredAt)
     {
         ValidateEditableData(
             sku, name, categoryId, baseUnit, purchaseUnit, purchaseUnitFactor,
             purchasePrice, salePrice, taxRate, minimumStock);
         ValidateStock(initialStock, baseUnit, nameof(initialStock));
 
-        // The initial quantity is the opening balance; from then on stock only moves
-        // through inventory movements.
-        return new Product(
+        // The product starts empty; the opening stock, when there is any, is applied as the first
+        // inventory movement so the history is complete. From then on stock only moves through
+        // movements.
+        var product = new Product(
             Guid.CreateVersion7(),
             sku.Trim(),
             name.Trim(),
@@ -158,9 +182,23 @@ public class Product
             purchasePrice,
             salePrice,
             taxRate,
-            initialStock,
+            currentStock: 0m,
             minimumStock,
             isActive: true);
+
+        if (initialStock > 0)
+        {
+            product.ApplyMovement(
+                InventoryMovementType.InitialBalance,
+                initialStock,
+                reason: null,
+                note: null,
+                userId,
+                userName,
+                occurredAt);
+        }
+
+        return product;
     }
 
     /// <summary>
@@ -226,6 +264,92 @@ public class Product
     /// <returns>True when the unit is unchanged or the product has no stock.</returns>
     public bool CanChangeBaseUnitTo(UnitOfMeasure baseUnit) =>
         baseUnit == BaseUnit || CurrentStock == 0;
+
+    /// <summary>
+    /// Stock that would result from applying a movement of the given type and quantity. Used for the
+    /// adjustment preview and to reject a movement before it is recorded.
+    /// </summary>
+    /// <param name="type">Movement type, which gives the direction.</param>
+    /// <param name="quantity">Positive moved quantity, in base units.</param>
+    /// <returns>The resulting stock, which may be negative when the movement is not allowed.</returns>
+    public decimal GetResultingStock(InventoryMovementType type, decimal quantity) =>
+        type.IsInbound() ? CurrentStock + quantity : CurrentStock - quantity;
+
+    /// <summary>
+    /// Applies a stock movement: validates the business rules, updates <see cref="CurrentStock"/> and
+    /// returns the recorded movement. Stock never becomes negative and never changes without a
+    /// movement.
+    /// </summary>
+    /// <param name="type">Movement type, which gives the direction; must be defined.</param>
+    /// <param name="quantity">Positive moved quantity, in base units.</param>
+    /// <param name="reason">Adjustment reason; required for manual adjustments.</param>
+    /// <param name="note">Optional note; required when the reason is "other".</param>
+    /// <param name="userId">User that produces the movement.</param>
+    /// <param name="userName">Display name of that user.</param>
+    /// <param name="occurredAt">Instant the movement happens.</param>
+    /// <param name="referenceType">Optional kind of referenced document.</param>
+    /// <param name="referenceId">Optional referenced document identifier.</param>
+    /// <returns>The recorded movement.</returns>
+    /// <exception cref="DomainException">When any invariant is violated.</exception>
+    public InventoryMovement ApplyMovement(
+        InventoryMovementType type,
+        decimal quantity,
+        InventoryAdjustmentReason? reason,
+        string? note,
+        string userId,
+        string userName,
+        DateTimeOffset occurredAt,
+        InventoryReferenceType? referenceType = null,
+        Guid? referenceId = null)
+    {
+        if (!IsActive)
+        {
+            throw new DomainException("Movements cannot be applied to an inactive product.");
+        }
+
+        if (!Enum.IsDefined(type))
+        {
+            throw new DomainException("Movement type is not valid.");
+        }
+
+        if (quantity <= 0)
+        {
+            throw new DomainException("Movement quantity must be greater than zero.");
+        }
+
+        if (!BaseUnit.IsValidQuantity(quantity))
+        {
+            throw new DomainException("Movement quantity must be a whole number for this unit.");
+        }
+
+        var stockBefore = CurrentStock;
+        var stockAfter = GetResultingStock(type, quantity);
+
+        if (stockAfter < 0)
+        {
+            throw new DomainException("The resulting stock cannot be negative.");
+        }
+
+        var movement = InventoryMovement.Create(
+            Id,
+            type,
+            quantity,
+            stockBefore,
+            stockAfter,
+            BaseUnit,
+            reason,
+            note,
+            userId,
+            userName,
+            occurredAt,
+            referenceType,
+            referenceId);
+
+        CurrentStock = stockAfter;
+        _movements.Add(movement);
+
+        return movement;
+    }
 
     /// <summary>
     /// Deactivates the product. This is a soft delete: products are never removed physically.

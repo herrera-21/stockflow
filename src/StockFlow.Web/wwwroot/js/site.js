@@ -324,3 +324,53 @@
     apply();
   });
 })();
+
+// Stock adjustment form: shows the resulting stock (current stock plus or minus the typed quantity)
+// ahead of saving. The server revalidates everything, including that the stock never goes negative.
+(function () {
+  function parseNumber(value) {
+    var number = parseFloat(String(value).replace(',', '.'));
+    return isNaN(number) ? null : number;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var preview = document.getElementById('stock-preview');
+    var type = document.getElementById('Input_Type');
+    var quantity = document.getElementById('Input_Quantity');
+    if (!preview || !type || !quantity) {
+      return;
+    }
+
+    var current = parseNumber(preview.getAttribute('data-current'));
+    var unit = preview.getAttribute('data-unit') || '';
+    var increase = preview.getAttribute('data-increase');
+    var template = preview.getAttribute('data-template') || '';
+
+    function format(value) {
+      return value.toFixed(3).replace(/\.?0+$/, '');
+    }
+
+    function apply() {
+      var value = parseNumber(quantity.value);
+      if (value === null || value <= 0) {
+        preview.hidden = true;
+        return;
+      }
+
+      var delta = type.value === increase ? value : -value;
+      var result = current + delta;
+
+      preview.hidden = false;
+      preview.classList.toggle('alert-danger', result < 0);
+      preview.classList.toggle('alert-info', result >= 0);
+      preview.textContent = template
+        .replace('{0}', format(current))
+        .replace('{1}', unit)
+        .replace('{2}', format(result));
+    }
+
+    type.addEventListener('change', apply);
+    quantity.addEventListener('input', apply);
+    apply();
+  });
+})();

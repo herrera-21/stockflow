@@ -1,0 +1,83 @@
+@model StockFlow.Web.Pages.Products.MovementsModel
+@using Microsoft.Extensions.Localization
+@using StockFlow.Domain
+@inject IStringLocalizer<SharedResource> Localizer
+@if (Model.Movements.Items.Count == 0)
+{
+    <div class="alert alert-info" role="alert">@Localizer["NoMovements"]</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">@Localizer["OccurredAt"]</th>
+                    <th scope="col">@Localizer["MovementType"]</th>
+                    <th scope="col" class="text-end">@Localizer["Quantity"]</th>
+                    <th scope="col" class="text-end">@Localizer["StockBefore"]</th>
+                    <th scope="col" class="text-end">@Localizer["StockAfter"]</th>
+                    <th scope="col">@Localizer["AdjustmentReason"]</th>
+                    <th scope="col">@Localizer["User"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var movement in Model.Movements.Items)
+                {
+                    var inbound = movement.Type.IsInbound();
+                    <tr>
+                        <td>@movement.OccurredAt.ToLocalTime().ToString("g")</td>
+                        <td>
+                            <span class="badge @(inbound ? "bg-success" : "bg-danger")">@Localizer.MovementTypeName(movement.Type)</span>
+                            @if (!string.IsNullOrWhiteSpace(movement.Note))
+                            {
+                                <div class="text-body-secondary small">@movement.Note</div>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @(inbound ? "+" : "-")@Localizer.FormatQuantity(movement.Quantity, movement.BaseUnit)
+                        </td>
+                        <td class="text-end">@Localizer.FormatQuantity(movement.StockBefore, movement.BaseUnit)</td>
+                        <td class="text-end">@Localizer.FormatQuantity(movement.StockAfter, movement.BaseUnit)</td>
+                        <td>
+                            @if (movement.Reason is not null)
+                            {
+                                @Localizer.AdjustmentReasonName(movement.Reason.Value)
+                            }
+                            else
+                            {
+                                <span class="text-body-secondary">—</span>
+                            }
+                        </td>
+                        <td>@movement.UserName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Movements.TotalPages > 1)
+    {
+        <nav aria-label="@Localizer["MovementsTitle"]">
+            <ul class="pagination">
+                <li class="page-item @(Model.Movements.HasPreviousPage ? string.Empty : "disabled")">
+                    <a class="page-link"
+                       href="@Url.Page("/Products/Movements", null, new { id = Model.Product.Id, pageNumber = Model.PageNumber - 1 })"
+                       hx-get="@Url.Page("/Products/Movements", "Rows", new { id = Model.Product.Id, pageNumber = Model.PageNumber - 1 })"
+                       hx-target="#movements-container"
+                       hx-swap="innerHTML">@Localizer["Previous"]</a>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">@Localizer["PageOf", Model.PageNumber, Model.Movements.TotalPages]</span>
+                </li>
+                <li class="page-item @(Model.Movements.HasNextPage ? string.Empty : "disabled")">
+                    <a class="page-link"
+                       href="@Url.Page("/Products/Movements", null, new { id = Model.Product.Id, pageNumber = Model.PageNumber + 1 })"
+                       hx-get="@Url.Page("/Products/Movements", "Rows", new { id = Model.Product.Id, pageNumber = Model.PageNumber + 1 })"
+                       hx-target="#movements-container"
+                       hx-swap="innerHTML">@Localizer["Next"]</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

@@ -1,0 +1,80 @@
+@page "{id:guid}"
+@model StockFlow.Web.Pages.Products.AdjustModel
+@using Microsoft.Extensions.Localization
+@using StockFlow.Domain
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["AdjustStockTitle"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@Localizer["AdjustStockTitle"]</h1>
+    <a asp-page="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h2 class="h5 mb-1">@Model.Product.Name</h2>
+        <div class="text-body-secondary">
+            @Localizer["Sku"]: @Model.Product.Sku
+        </div>
+        <div class="mt-2">
+            @Localizer["CurrentStock"]:
+            <span class="@(Model.Product.HasLowStock ? "text-danger fw-bold" : "fw-semibold")">
+                @Localizer.FormatQuantity(Model.Product.CurrentStock, Model.Product.BaseUnit)
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Input.ProductId" />
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.Type" class="form-label"></label>
+                    <select asp-for="Input.Type" asp-items="Model.Types" class="form-select"></select>
+                    <span asp-validation-for="Input.Type" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Input.Quantity" class="form-label"></label>
+                    <div class="input-group">
+                        <input asp-for="Input.Quantity" class="form-control js-numeric" type="text" inputmode="decimal" placeholder="0" />
+                        <span class="input-group-text">@Localizer.UnitSymbol(Model.Product.BaseUnit)</span>
+                    </div>
+                    <div class="form-text">@Localizer["AdjustQuantityHelp", Localizer.UnitName(Model.Product.BaseUnit)]</div>
+                    <span asp-validation-for="Input.Quantity" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Reason" class="form-label"></label>
+                <select asp-for="Input.Reason" asp-items="Model.Reasons" class="form-select"></select>
+                <span asp-validation-for="Input.Reason" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Note" class="form-label"></label>
+                <textarea asp-for="Input.Note" class="form-control" rows="2"></textarea>
+                <div class="form-text">@Localizer["AdjustmentNoteHelp"]</div>
+                <span asp-validation-for="Input.Note" class="text-danger"></span>
+            </div>
+
+            <div class="alert alert-info" id="stock-preview" role="status" aria-live="polite"
+                 data-current="@Model.Product.CurrentStock.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                 data-unit="@Localizer.UnitSymbol(Model.Product.BaseUnit)"
+                 data-increase="@InventoryMovementType.AdjustmentIncrease"
+                 data-template="@Localizer["ResultingStockPreview"]"></div>
+
+            <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+            <a asp-page="Movements" asp-route-id="@Model.Product.Id" class="btn btn-outline-secondary">@Localizer["MovementsTitle"]</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

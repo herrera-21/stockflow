@@ -1,0 +1,35 @@
+@page "{id:guid}"
+@model StockFlow.Web.Pages.Products.MovementsModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["MovementsTitle"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@Localizer["MovementsTitle"]</h1>
+    <div>
+        @if (Model.CanAdjustInventory)
+        {
+            <a asp-page="Adjust" asp-route-id="@Model.Product.Id" class="btn btn-primary">@Localizer["AdjustStockTitle"]</a>
+        }
+        <a asp-page="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h2 class="h5 mb-1">@Model.Product.Name</h2>
+        <div class="text-body-secondary">@Localizer["Sku"]: @Model.Product.Sku</div>
+        <div class="mt-2">
+            @Localizer["CurrentStock"]:
+            <span class="@(Model.Product.HasLowStock ? "text-danger fw-bold" : "fw-semibold")">
+                @Localizer.FormatQuantity(Model.Product.CurrentStock, Model.Product.BaseUnit)
+            </span>
+        </div>
+    </div>
+</div>
+
+<div id="movements-container">
+    <partial name="_MovementsTable" model="Model" />
+</div>

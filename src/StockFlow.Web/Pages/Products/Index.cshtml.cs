@@ -55,6 +55,9 @@ public class IndexModel : PageModel
     /// <summary>True when the current user may manage products.</summary>
     public bool CanManageProducts { get; private set; }
 
+    /// <summary>True when the current user may adjust stock.</summary>
+    public bool CanAdjustInventory { get; private set; }
+
     /// <summary>Active categories offered by the filter.</summary>
     public IReadOnlyList<SelectListItem> Categories { get; private set; } = [];
 
@@ -123,7 +126,13 @@ public class IndexModel : PageModel
                 return new EmptyResult();
             }
 
-            return Partial("_ProductRow", new ProductRowViewModel(result.Value!, true, pageNumber, search, categoryId));
+            return Partial("_ProductRow", new ProductRowViewModel(
+                result.Value!,
+                CanManageProducts: true,
+                await CanAdjustAsync(),
+                pageNumber,
+                search,
+                categoryId));
         }
 
         if (result.IsSuccess)
@@ -142,6 +151,7 @@ public class IndexModel : PageModel
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
         CanManageProducts = await CanManageAsync();
+        CanAdjustInventory = await CanAdjustAsync();
         Products = await _getProducts.HandleAsync(
             new GetProductsPagedQuery(PageNumber, PageSize, Search, CategoryId),
             cancellationToken);
@@ -153,4 +163,8 @@ public class IndexModel : PageModel
     // Checks whether the current user satisfies the manage-products policy.
     private async Task<bool> CanManageAsync() =>
         (await _authorizationService.AuthorizeAsync(User, Policies.CanManageProducts)).Succeeded;
+
+    // Checks whether the current user satisfies the adjust-inventory policy.
+    private async Task<bool> CanAdjustAsync() =>
+        (await _authorizationService.AuthorizeAsync(User, Policies.CanAdjustInventory)).Succeeded;
 }

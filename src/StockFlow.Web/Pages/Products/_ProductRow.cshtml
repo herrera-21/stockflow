@@ -23,9 +23,15 @@
             <span class="badge bg-secondary">@Localizer["InactiveStatus"]</span>
         }
     </td>
-    @if (Model.CanManageProducts)
-    {
-        <td class="text-end">
+    <td class="text-end">
+        <a asp-page="Movements" asp-route-id="@Model.Product.Id" class="btn btn-sm btn-outline-secondary">@Localizer["MovementsTitle"]</a>
+        @* Inactive products cannot receive movements, so the action is only offered for active ones. *@
+        @if (Model.CanAdjustInventory && Model.Product.IsActive)
+        {
+            <a asp-page="Adjust" asp-route-id="@Model.Product.Id" class="btn btn-sm btn-outline-primary">@Localizer["AdjustStockTitle"]</a>
+        }
+        @if (Model.CanManageProducts)
+        {
             <a asp-page="Edit" asp-route-id="@Model.Product.Id" class="btn btn-sm btn-outline-secondary">@Localizer["Edit"]</a>
             @if (Model.Product.IsActive)
             {
@@ -42,6 +48,6 @@
                     <button type="submit" class="btn btn-sm btn-outline-danger">@Localizer["Deactivate"]</button>
                 </form>
             }
-        </td>
-    }
+        }
+    </td>
 </tr>

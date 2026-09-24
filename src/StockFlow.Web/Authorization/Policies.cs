@@ -20,6 +20,9 @@ public static class Policies
     /// <summary>Policy name for managing categories. Only administrators pass.</summary>
     public const string CanManageCategories = "CanManageCategories";
 
+    /// <summary>Policy name for adjusting stock. Only administrators and inventory managers pass.</summary>
+    public const string CanAdjustInventory = "CanAdjustInventory";
+
     /// <summary>
     /// Registers the application authorization policies.
     /// </summary>
@@ -42,5 +45,10 @@ public static class Policies
         options.AddPolicy(CanManageCategories, policy => policy
             .RequireAuthenticatedUser()
             .RequireRole(ApplicationRoles.Administrator));
+
+        // Stock adjustments move inventory, so they follow the same roles as product management.
+        options.AddPolicy(CanAdjustInventory, policy => policy
+            .RequireAuthenticatedUser()
+            .RequireRole(ApplicationRoles.Administrator, ApplicationRoles.InventoryManager));
     }
 }

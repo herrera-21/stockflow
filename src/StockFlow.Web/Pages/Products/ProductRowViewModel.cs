@@ -8,12 +8,14 @@ namespace StockFlow.Web.Pages.Products;
 /// </summary>
 /// <param name="Product">Product shown in the row.</param>
 /// <param name="CanManageProducts">Whether the current user may manage products.</param>
+/// <param name="CanAdjustInventory">Whether the current user may adjust stock.</param>
 /// <param name="PageNumber">Current page number, preserved by the row actions.</param>
 /// <param name="Search">Current search text, preserved by the row actions.</param>
 /// <param name="CategoryId">Current category filter, preserved by the row actions.</param>
 public record ProductRowViewModel(
     ProductDto Product,
     bool CanManageProducts,
+    bool CanAdjustInventory,
     int PageNumber,
     string? Search,
     Guid? CategoryId);

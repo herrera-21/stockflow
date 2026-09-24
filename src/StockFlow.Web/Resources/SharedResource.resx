@@ -589,4 +589,112 @@
   <data name="NavSectionCommercial" xml:space="preserve">
     <value>Comercial</value>
   </data>
+  <data name="AdjustStockTitle" xml:space="preserve">
+    <value>Ajustar stock</value>
+  </data>
+  <data name="MovementsTitle" xml:space="preserve">
+    <value>Movimientos</value>
+  </data>
+  <data name="StockAdjusted" xml:space="preserve">
+    <value>Ajuste de stock registrado correctamente.</value>
+  </data>
+  <data name="NoMovements" xml:space="preserve">
+    <value>Este producto todavía no tiene movimientos.</value>
+  </data>
+  <data name="MovementType" xml:space="preserve">
+    <value>Tipo de movimiento</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="StockBefore" xml:space="preserve">
+    <value>Stock anterior</value>
+  </data>
+  <data name="StockAfter" xml:space="preserve">
+    <value>Stock resultante</value>
+  </data>
+  <data name="AdjustmentReason" xml:space="preserve">
+    <value>Motivo</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Nota</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>Usuario</value>
+  </data>
+  <data name="OccurredAt" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="AdjustQuantityHelp" xml:space="preserve">
+    <value>Cantidad en {0}. Debe ser mayor que cero.</value>
+  </data>
+  <data name="AdjustmentNoteHelp" xml:space="preserve">
+    <value>Obligatoria cuando el motivo es "Otro".</value>
+  </data>
+  <data name="ResultingStockPreview" xml:space="preserve">
+    <value>Stock actual {0} {1} → stock resultante {2} {1}</value>
+  </data>
+  <data name="MovementTypeInitialBalance" xml:space="preserve">
+    <value>Saldo inicial</value>
+  </data>
+  <data name="MovementTypePurchaseIn" xml:space="preserve">
+    <value>Entrada por compra</value>
+  </data>
+  <data name="MovementTypeSaleOut" xml:space="preserve">
+    <value>Salida por venta</value>
+  </data>
+  <data name="MovementTypeSaleCancellation" xml:space="preserve">
+    <value>Cancelación de venta</value>
+  </data>
+  <data name="MovementTypeAdjustmentIncrease" xml:space="preserve">
+    <value>Ajuste positivo</value>
+  </data>
+  <data name="MovementTypeAdjustmentDecrease" xml:space="preserve">
+    <value>Ajuste negativo</value>
+  </data>
+  <data name="MovementTypeCustomerReturn" xml:space="preserve">
+    <value>Devolución de cliente</value>
+  </data>
+  <data name="MovementTypeSupplierReturn" xml:space="preserve">
+    <value>Devolución a proveedor</value>
+  </data>
+  <data name="AdjustmentReasonPhysicalCount" xml:space="preserve">
+    <value>Conteo físico</value>
+  </data>
+  <data name="AdjustmentReasonDamage" xml:space="preserve">
+    <value>Merma o daño</value>
+  </data>
+  <data name="AdjustmentReasonExpiration" xml:space="preserve">
+    <value>Vencimiento</value>
+  </data>
+  <data name="AdjustmentReasonCorrection" xml:space="preserve">
+    <value>Corrección</value>
+  </data>
+  <data name="AdjustmentReasonOther" xml:space="preserve">
+    <value>Otro</value>
+  </data>
+  <data name="InventoryProductInactive" xml:space="preserve">
+    <value>No se pueden registrar movimientos en un producto inactivo.</value>
+  </data>
+  <data name="InventoryInvalidQuantity" xml:space="preserve">
+    <value>La cantidad debe ser mayor que cero y ser un número entero para esta unidad.</value>
+  </data>
+  <data name="InventoryAdjustmentReasonRequired" xml:space="preserve">
+    <value>El ajuste requiere un motivo.</value>
+  </data>
+  <data name="InventoryAdjustmentNoteRequired" xml:space="preserve">
+    <value>La nota es obligatoria cuando el motivo es "Otro".</value>
+  </data>
+  <data name="InventoryInsufficientStock" xml:space="preserve">
+    <value>El stock no puede quedar negativo con este ajuste.</value>
+  </data>
+  <data name="InventoryConcurrencyConflict" xml:space="preserve">
+    <value>El stock cambió mientras guardabas; recarga la página e inténtalo de nuevo.</value>
+  </data>
+  <data name="InventoryInvalidMovement" xml:space="preserve">
+    <value>El tipo de movimiento no es válido para un ajuste manual.</value>
+  </data>
+  <data name="ProductConcurrencyConflict" xml:space="preserve">
+    <value>El producto cambió mientras guardabas; recarga la página e inténtalo de nuevo.</value>
+  </data>
 </root>

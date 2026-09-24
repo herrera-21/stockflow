@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc.DataAnnotations;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StockFlow.Application;
+using StockFlow.Application.Common.Interfaces;
 using StockFlow.Infrastructure.Identity;
 using StockFlow.Infrastructure.Persistence;
 using StockFlow.Web;
 using StockFlow.Web.Authorization;
+using StockFlow.Web.Services;
 using StockFlow.Web.Validation;
 
 // Application entry point: wires up Razor Pages, localization, Identity and the layered services,
@@ -43,6 +45,10 @@ builder.Services.AddRazorPages()
         options.Conventions.AuthorizeFolder("/Products");
         options.Conventions.AuthorizePage("/Products/Create", Policies.CanManageProducts);
         options.Conventions.AuthorizePage("/Products/Edit", Policies.CanManageProducts);
+
+        // Adjusting stock moves inventory, so it requires the inventory policy; viewing the movement
+        // history is allowed for anyone who can see products.
+        options.Conventions.AuthorizePage("/Products/Adjust", Policies.CanAdjustInventory);
 
         options.Conventions.AuthorizeFolder("/Customers");
         options.Conventions.AuthorizePage("/Customers/Create", Policies.CanManageCustomers);
@@ -79,6 +85,10 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
+
+// Exposes the authenticated user to the application handlers (movements, audit).
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, HttpContextCurrentUser>();
 
 // AppDbContext is an IdentityDbContext, so this also wires up the EF Core Identity stores.
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()

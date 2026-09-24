@@ -16,16 +16,13 @@ else
                 <th scope="col" class="text-end">@Localizer["SalePrice"]</th>
                 <th scope="col" class="text-end">@Localizer["CurrentStock"]</th>
                 <th scope="col">@Localizer["Status"]</th>
-                @if (Model.CanManageProducts)
-                {
-                    <th scope="col" class="text-end">@Localizer["Actions"]</th>
-                }
+                <th scope="col" class="text-end">@Localizer["Actions"]</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var product in Model.Products.Items)
             {
-                <partial name="_ProductRow" model="new ProductRowViewModel(product, Model.CanManageProducts, Model.PageNumber, Model.Search, Model.CategoryId)" />
+                <partial name="_ProductRow" model="new ProductRowViewModel(product, Model.CanManageProducts, Model.CanAdjustInventory, Model.PageNumber, Model.Search, Model.CategoryId)" />
             }
         </tbody>
     </table>

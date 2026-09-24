@@ -3,7 +3,7 @@ using StockFlow.Domain.Exceptions;
 namespace StockFlow.Domain.Entities;
 
 /// <summary>
-/// Supplier aggregate: business information, tax identification and contact details. Suppliers are
+/// Supplier aggregate: business information, identity document and contact details. Suppliers are
 /// never deleted physically; they are deactivated instead.
 /// </summary>
 public class Supplier
@@ -19,6 +19,7 @@ public class Supplier
     private Supplier(
         Guid id,
         string name,
+        DocumentType documentType,
         string taxId,
         string? contactName,
         string? phone,
@@ -28,6 +29,7 @@ public class Supplier
     {
         Id = id;
         Name = name;
+        DocumentType = documentType;
         TaxId = taxId;
         ContactName = contactName;
         Phone = phone;
@@ -42,7 +44,10 @@ public class Supplier
     /// <summary>Supplier company name.</summary>
     public string Name { get; private set; } = null!;
 
-    /// <summary>Tax identification; unique across suppliers.</summary>
+    /// <summary>Type of the identity document.</summary>
+    public DocumentType DocumentType { get; private set; }
+
+    /// <summary>Identity document number, formatted according to <see cref="DocumentType"/>.</summary>
     public string TaxId { get; private set; } = null!;
 
     /// <summary>Optional name of the person to contact at the supplier.</summary>
@@ -67,7 +72,8 @@ public class Supplier
     /// Creates a new active supplier.
     /// </summary>
     /// <param name="name">Company name; must not be blank.</param>
-    /// <param name="taxId">Tax identification; must not be blank.</param>
+    /// <param name="documentType">Type of the identity document.</param>
+    /// <param name="taxId">Identity document number; must match <paramref name="documentType"/>.</param>
     /// <param name="contactName">Optional contact person name.</param>
     /// <param name="phone">Optional phone number.</param>
     /// <param name="email">Optional email address.</param>
@@ -76,18 +82,20 @@ public class Supplier
     /// <exception cref="DomainException">When any invariant is violated.</exception>
     public static Supplier Create(
         string name,
+        DocumentType documentType,
         string taxId,
         string? contactName,
         string? phone,
         string? email,
         string? address)
     {
-        Validate(name, taxId);
+        Validate(name, documentType, taxId, contactName, phone);
 
         return new Supplier(
             Guid.CreateVersion7(),
             name.Trim(),
-            taxId.Trim(),
+            documentType,
+            DocumentValidation.Normalize(documentType, taxId),
             Normalize(contactName),
             Normalize(phone),
             Normalize(email),
@@ -99,7 +107,8 @@ public class Supplier
     /// Updates the supplier's editable data.
     /// </summary>
     /// <param name="name">Company name; must not be blank.</param>
-    /// <param name="taxId">Tax identification; must not be blank.</param>
+    /// <param name="documentType">Type of the identity document.</param>
+    /// <param name="taxId">Identity document number; must match <paramref name="documentType"/>.</param>
     /// <param name="contactName">Optional contact person name.</param>
     /// <param name="phone">Optional phone number.</param>
     /// <param name="email">Optional email address.</param>
@@ -107,16 +116,18 @@ public class Supplier
     /// <exception cref="DomainException">When any invariant is violated.</exception>
     public void Update(
         string name,
+        DocumentType documentType,
         string taxId,
         string? contactName,
         string? phone,
         string? email,
         string? address)
     {
-        Validate(name, taxId);
+        Validate(name, documentType, taxId, contactName, phone);
 
         Name = name.Trim();
-        TaxId = taxId.Trim();
+        DocumentType = documentType;
+        TaxId = DocumentValidation.Normalize(documentType, taxId);
         ContactName = Normalize(contactName);
         Phone = Normalize(phone);
         Email = Normalize(email);
@@ -131,17 +142,33 @@ public class Supplier
     /// <summary>Reactivates a previously deactivated supplier.</summary>
     public void Activate() => IsActive = true;
 
-    // Validates the required identifying fields shared by Create and Update.
-    private static void Validate(string name, string taxId)
+    // Validates the required identifying fields and the optional contact data shared by Create and
+    // Update. The company name stays free-form so legal names with digits or symbols are accepted.
+    private static void Validate(
+        string name,
+        DocumentType documentType,
+        string taxId,
+        string? contactName,
+        string? phone)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new DomainException("Name is required.");
         }
 
-        if (string.IsNullOrWhiteSpace(taxId))
+        if (!DocumentValidation.IsValid(documentType, taxId))
         {
-            throw new DomainException("Tax identification is required.");
+            throw new DomainException("The identity document is not valid for the selected type.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(contactName) && !FieldValidation.IsValidPersonName(contactName))
+        {
+            throw new DomainException("The contact name can only contain letters, spaces and the characters . ' -");
+        }
+
+        if (!FieldValidation.IsValidPhone(phone))
+        {
+            throw new DomainException("The phone number is not valid.");
         }
     }
 

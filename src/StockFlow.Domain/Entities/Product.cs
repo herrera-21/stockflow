@@ -21,19 +21,25 @@ public class Product
         string sku,
         string name,
         string? description,
-        string category,
+        Guid categoryId,
+        UnitOfMeasure baseUnit,
+        UnitOfMeasure purchaseUnit,
+        decimal purchaseUnitFactor,
         decimal purchasePrice,
         decimal salePrice,
         decimal taxRate,
-        int currentStock,
-        int minimumStock,
+        decimal currentStock,
+        decimal minimumStock,
         bool isActive)
     {
         Id = id;
         Sku = sku;
         Name = name;
         Description = description;
-        Category = category;
+        CategoryId = categoryId;
+        BaseUnit = baseUnit;
+        PurchaseUnit = purchaseUnit;
+        PurchaseUnitFactor = purchaseUnitFactor;
         PurchasePrice = purchasePrice;
         SalePrice = salePrice;
         TaxRate = taxRate;
@@ -54,29 +60,47 @@ public class Product
     /// <summary>Optional free-form description.</summary>
     public string? Description { get; private set; }
 
-    /// <summary>Product category.</summary>
-    public string Category { get; private set; } = null!;
+    /// <summary>Identifier of the product category.</summary>
+    public Guid CategoryId { get; private set; }
 
-    /// <summary>Price paid to the supplier.</summary>
+    /// <summary>Category this product belongs to.</summary>
+    public Category? Category { get; private set; }
+
+    /// <summary>Unit in which stock is kept and the product is sold.</summary>
+    public UnitOfMeasure BaseUnit { get; private set; }
+
+    /// <summary>Unit in which the product is bought from suppliers.</summary>
+    public UnitOfMeasure PurchaseUnit { get; private set; }
+
+    /// <summary>
+    /// How many base units one purchase unit contains (for example 24 when a box holds 24 units).
+    /// Always 1 when both units are the same.
+    /// </summary>
+    public decimal PurchaseUnitFactor { get; private set; }
+
+    /// <summary>Price paid to the supplier per purchase unit.</summary>
     public decimal PurchasePrice { get; private set; }
 
-    /// <summary>Price charged to the customer.</summary>
+    /// <summary>Price charged to the customer per base unit.</summary>
     public decimal SalePrice { get; private set; }
 
     /// <summary>Tax rate as a percentage (0-100), not a monetary amount.</summary>
     public decimal TaxRate { get; private set; }
 
-    /// <summary>Quantity currently in stock.</summary>
-    public int CurrentStock { get; private set; }
+    /// <summary>Quantity currently in stock, in base units.</summary>
+    public decimal CurrentStock { get; private set; }
 
-    /// <summary>Stock level at or below which the product is considered low.</summary>
-    public int MinimumStock { get; private set; }
+    /// <summary>Stock level (in base units) at or below which the product is considered low.</summary>
+    public decimal MinimumStock { get; private set; }
 
     /// <summary>Whether the product is active (soft-delete flag).</summary>
     public bool IsActive { get; private set; }
 
     /// <summary>True when the product is at or below its minimum stock level.</summary>
     public bool HasLowStock => CurrentStock <= MinimumStock;
+
+    /// <summary>Cost of one base unit: the purchase price divided by the purchase unit factor.</summary>
+    public decimal UnitCost => PurchasePrice / PurchaseUnitFactor;
 
     /// <summary>Suppliers that offer this product.</summary>
     public IReadOnlyList<ProductSupplier> Suppliers => _suppliers;
@@ -87,27 +111,38 @@ public class Product
     /// <param name="sku">Stock keeping unit; must not be blank.</param>
     /// <param name="name">Display name; must not be blank.</param>
     /// <param name="description">Optional description.</param>
-    /// <param name="category">Category; must not be blank.</param>
-    /// <param name="purchasePrice">Supplier price; cannot be negative.</param>
-    /// <param name="salePrice">Customer price; cannot be negative.</param>
+    /// <param name="categoryId">Category identifier; must not be empty.</param>
+    /// <param name="baseUnit">Unit for stock and sale price.</param>
+    /// <param name="purchaseUnit">Unit used when buying from suppliers.</param>
+    /// <param name="purchaseUnitFactor">
+    /// Base units per purchase unit; positive, whole for countable base units and 1 when both units
+    /// match.
+    /// </param>
+    /// <param name="purchasePrice">Supplier price per purchase unit; cannot be negative.</param>
+    /// <param name="salePrice">Customer price per base unit; cannot be negative.</param>
     /// <param name="taxRate">Tax percentage (0-100).</param>
-    /// <param name="initialStock">Opening balance; cannot be negative.</param>
-    /// <param name="minimumStock">Low-stock threshold; cannot be negative.</param>
+    /// <param name="initialStock">Opening balance in base units; cannot be negative.</param>
+    /// <param name="minimumStock">Low-stock threshold in base units; cannot be negative.</param>
     /// <returns>The created product.</returns>
     /// <exception cref="DomainException">When any invariant is violated.</exception>
     public static Product Create(
         string sku,
         string name,
         string? description,
-        string category,
+        Guid categoryId,
+        UnitOfMeasure baseUnit,
+        UnitOfMeasure purchaseUnit,
+        decimal purchaseUnitFactor,
         decimal purchasePrice,
         decimal salePrice,
         decimal taxRate,
-        int initialStock,
-        int minimumStock)
+        decimal initialStock,
+        decimal minimumStock)
     {
-        ValidateEditableData(sku, name, category, purchasePrice, salePrice, taxRate, minimumStock);
-        ValidateStock(initialStock, nameof(initialStock));
+        ValidateEditableData(
+            sku, name, categoryId, baseUnit, purchaseUnit, purchaseUnitFactor,
+            purchasePrice, salePrice, taxRate, minimumStock);
+        ValidateStock(initialStock, baseUnit, nameof(initialStock));
 
         // The initial quantity is the opening balance; from then on stock only moves
         // through inventory movements.
@@ -116,7 +151,10 @@ public class Product
             sku.Trim(),
             name.Trim(),
             Normalize(description),
-            category.Trim(),
+            categoryId,
+            baseUnit,
+            purchaseUnit,
+            purchaseUnitFactor,
             purchasePrice,
             salePrice,
             taxRate,
@@ -126,38 +164,68 @@ public class Product
     }
 
     /// <summary>
-    /// Updates the editable data. <see cref="CurrentStock"/> is deliberately excluded.
+    /// Updates the editable data. <see cref="CurrentStock"/> is deliberately excluded, and the base
+    /// unit can only change while there is no stock.
     /// </summary>
     /// <param name="sku">Stock keeping unit; must not be blank.</param>
     /// <param name="name">Display name; must not be blank.</param>
     /// <param name="description">Optional description.</param>
-    /// <param name="category">Category; must not be blank.</param>
-    /// <param name="purchasePrice">Supplier price; cannot be negative.</param>
-    /// <param name="salePrice">Customer price; cannot be negative.</param>
+    /// <param name="categoryId">Category identifier; must not be empty.</param>
+    /// <param name="baseUnit">Unit for stock and sale price.</param>
+    /// <param name="purchaseUnit">Unit used when buying from suppliers.</param>
+    /// <param name="purchaseUnitFactor">
+    /// Base units per purchase unit; positive, whole for countable base units and 1 when both units
+    /// match.
+    /// </param>
+    /// <param name="purchasePrice">Supplier price per purchase unit; cannot be negative.</param>
+    /// <param name="salePrice">Customer price per base unit; cannot be negative.</param>
     /// <param name="taxRate">Tax percentage (0-100).</param>
-    /// <param name="minimumStock">Low-stock threshold; cannot be negative.</param>
+    /// <param name="minimumStock">Low-stock threshold in base units; cannot be negative.</param>
     /// <exception cref="DomainException">When any invariant is violated.</exception>
     public void Update(
         string sku,
         string name,
         string? description,
-        string category,
+        Guid categoryId,
+        UnitOfMeasure baseUnit,
+        UnitOfMeasure purchaseUnit,
+        decimal purchaseUnitFactor,
         decimal purchasePrice,
         decimal salePrice,
         decimal taxRate,
-        int minimumStock)
+        decimal minimumStock)
     {
-        ValidateEditableData(sku, name, category, purchasePrice, salePrice, taxRate, minimumStock);
+        ValidateEditableData(
+            sku, name, categoryId, baseUnit, purchaseUnit, purchaseUnitFactor,
+            purchasePrice, salePrice, taxRate, minimumStock);
+
+        if (!CanChangeBaseUnitTo(baseUnit))
+        {
+            throw new DomainException("The base unit cannot change while the product has stock.");
+        }
 
         Sku = sku.Trim();
         Name = name.Trim();
         Description = Normalize(description);
-        Category = category.Trim();
+        CategoryId = categoryId;
+        BaseUnit = baseUnit;
+        PurchaseUnit = purchaseUnit;
+        PurchaseUnitFactor = purchaseUnitFactor;
         PurchasePrice = purchasePrice;
         SalePrice = salePrice;
         TaxRate = taxRate;
         MinimumStock = minimumStock;
     }
+
+    /// <summary>
+    /// Whether the base unit may be set to the given value. Changing it with stock on hand would
+    /// silently reinterpret the existing quantity (10 units would become 10 pounds), so a change is
+    /// only allowed at zero stock.
+    /// </summary>
+    /// <param name="baseUnit">Candidate base unit.</param>
+    /// <returns>True when the unit is unchanged or the product has no stock.</returns>
+    public bool CanChangeBaseUnitTo(UnitOfMeasure baseUnit) =>
+        baseUnit == BaseUnit || CurrentStock == 0;
 
     /// <summary>
     /// Deactivates the product. This is a soft delete: products are never removed physically.
@@ -235,11 +303,14 @@ public class Product
     private static void ValidateEditableData(
         string sku,
         string name,
-        string category,
+        Guid categoryId,
+        UnitOfMeasure baseUnit,
+        UnitOfMeasure purchaseUnit,
+        decimal purchaseUnitFactor,
         decimal purchasePrice,
         decimal salePrice,
         decimal taxRate,
-        int minimumStock)
+        decimal minimumStock)
     {
         if (string.IsNullOrWhiteSpace(sku))
         {
@@ -251,10 +322,17 @@ public class Product
             throw new DomainException("Name is required.");
         }
 
-        if (string.IsNullOrWhiteSpace(category))
+        if (categoryId == Guid.Empty)
         {
             throw new DomainException("Category is required.");
         }
+
+        if (!Enum.IsDefined(baseUnit) || !Enum.IsDefined(purchaseUnit))
+        {
+            throw new DomainException("Unit of measure is not valid.");
+        }
+
+        ValidatePurchaseUnitFactor(baseUnit, purchaseUnit, purchaseUnitFactor);
 
         if (purchasePrice < 0)
         {
@@ -271,15 +349,43 @@ public class Product
             throw new DomainException("Tax rate must be between 0 and 100.");
         }
 
-        ValidateStock(minimumStock, nameof(minimumStock));
+        ValidateStock(minimumStock, baseUnit, nameof(minimumStock));
     }
 
-    // Ensures a stock value is not negative.
-    private static void ValidateStock(int value, string paramName)
+    // Ensures the conversion factor is positive, is 1 for identical units and holds a whole number
+    // of countable base units (a box cannot hold 2.5 pieces).
+    private static void ValidatePurchaseUnitFactor(
+        UnitOfMeasure baseUnit,
+        UnitOfMeasure purchaseUnit,
+        decimal purchaseUnitFactor)
+    {
+        if (purchaseUnitFactor <= 0)
+        {
+            throw new DomainException("Purchase unit factor must be greater than zero.");
+        }
+
+        if (purchaseUnit == baseUnit && purchaseUnitFactor != 1)
+        {
+            throw new DomainException("Purchase unit factor must be 1 when both units are the same.");
+        }
+
+        if (!baseUnit.IsValidQuantity(purchaseUnitFactor))
+        {
+            throw new DomainException("Purchase unit factor must be a whole number for this base unit.");
+        }
+    }
+
+    // Ensures a stock value is not negative and fits the base unit (whole for countable units).
+    private static void ValidateStock(decimal value, UnitOfMeasure baseUnit, string paramName)
     {
         if (value < 0)
         {
             throw new DomainException($"{paramName} cannot be negative.");
+        }
+
+        if (!baseUnit.IsValidQuantity(value))
+        {
+            throw new DomainException($"{paramName} must be a whole number for this unit.");
         }
     }
 

@@ -4,10 +4,10 @@
 <tr id="product-row-@Model.Product.Id">
     <td>@Model.Product.Sku</td>
     <td>@Model.Product.Name</td>
-    <td>@Model.Product.Category</td>
-    <td class="text-end">@Model.Product.SalePrice.ToString("N2")</td>
+    <td>@Localizer.CategoryName(Model.Product.CategoryCode, Model.Product.CategoryName)</td>
+    <td class="text-end">@Localizer.FormatMoney(Model.Product.SalePrice) <span class="text-body-secondary small">/ @Localizer.UnitSymbol(Model.Product.BaseUnit)</span></td>
     <td class="text-end">
-        <span class="@(Model.Product.HasLowStock ? "text-danger fw-bold" : "")">@Model.Product.CurrentStock</span>
+        <span class="@(Model.Product.HasLowStock ? "text-danger fw-bold" : "")">@Localizer.FormatQuantity(Model.Product.CurrentStock, Model.Product.BaseUnit)</span>
         @if (Model.Product.HasLowStock)
         {
             <span class="badge bg-warning text-dark ms-1">@Localizer["LowStock"]</span>
@@ -34,8 +34,8 @@
                       asp-route-id="@Model.Product.Id"
                       asp-route-pageNumber="@Model.PageNumber"
                       asp-route-search="@Model.Search"
-                      asp-route-category="@Model.Category"
-                      hx-post="@Url.Page("/Products/Index", "Deactivate", new { id = Model.Product.Id, pageNumber = Model.PageNumber, search = Model.Search, category = Model.Category })"
+                      asp-route-categoryId="@Model.CategoryId"
+                      hx-post="@Url.Page("/Products/Index", "Deactivate", new { id = Model.Product.Id, pageNumber = Model.PageNumber, search = Model.Search, categoryId = Model.CategoryId })"
                       hx-target="#product-row-@Model.Product.Id"
                       hx-swap="outerHTML"
                       class="d-inline">

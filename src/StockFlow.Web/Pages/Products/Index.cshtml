@@ -25,13 +25,20 @@
                hx-include="#product-category" />
     </div>
     <div class="col-md-4">
-        <input type="search" id="product-category" name="category" value="@Model.Category" class="form-control"
-               placeholder="@Localizer["FilterCategoryPlaceholder"]"
-               hx-get="@Url.Page("/Products/Index", "Rows")"
-               hx-trigger="keyup changed delay:300ms, search"
-               hx-target="#products-container"
-               hx-swap="innerHTML"
-               hx-include="#product-search" />
+        <select id="product-category" name="categoryId" class="form-select js-searchable"
+                aria-label="@Localizer["FilterCategoryPlaceholder"]"
+                data-no-results="@Localizer["NoResults"]"
+                hx-get="@Url.Page("/Products/Index", "Rows")"
+                hx-trigger="change"
+                hx-target="#products-container"
+                hx-swap="innerHTML"
+                hx-include="#product-search">
+            <option value="">@Localizer["FilterCategoryPlaceholder"]</option>
+            @foreach (var category in Model.Categories)
+            {
+                <option value="@category.Value" selected="@(category.Value == Model.CategoryId?.ToString())">@category.Text</option>
+            }
+        </select>
     </div>
 </div>
 

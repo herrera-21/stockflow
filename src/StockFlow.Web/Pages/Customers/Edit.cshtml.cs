@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
 using StockFlow.Application.Customers;
 using StockFlow.Application.Customers.Commands;
 using StockFlow.Application.Customers.Queries;
 using StockFlow.Web.Authorization;
+using StockFlow.Web.Localization;
 
 namespace StockFlow.Web.Pages.Customers;
 
@@ -38,6 +40,9 @@ public class EditModel : PageModel
     [BindProperty]
     public UpdateCustomerInputModel Input { get; set; } = new();
 
+    /// <summary>Identity document types offered by the form.</summary>
+    public IReadOnlyList<SelectListItem> DocumentTypes { get; private set; } = [];
+
     /// <summary>
     /// Loads the customer into the form.
     /// </summary>
@@ -57,11 +62,14 @@ public class EditModel : PageModel
         {
             Id = customer.Id,
             Name = customer.Name,
+            DocumentType = customer.DocumentType,
             TaxId = customer.TaxId,
             Phone = customer.Phone,
             Email = customer.Email,
             Address = customer.Address
         };
+
+        DocumentTypes = _localizer.ToDocumentTypeSelectList();
 
         return Page();
     }
@@ -75,12 +83,14 @@ public class EditModel : PageModel
     {
         if (!ModelState.IsValid)
         {
+            DocumentTypes = _localizer.ToDocumentTypeSelectList();
             return Page();
         }
 
         var command = new UpdateCustomerCommand(
             Input.Id,
             Input.Name,
+            Input.DocumentType!.Value,
             Input.TaxId,
             Input.Phone,
             Input.Email,
@@ -96,6 +106,7 @@ public class EditModel : PageModel
             }
 
             ModelState.AddModelError("Input.TaxId", _localizer[result.Error!]);
+            DocumentTypes = _localizer.ToDocumentTypeSelectList();
             return Page();
         }
 

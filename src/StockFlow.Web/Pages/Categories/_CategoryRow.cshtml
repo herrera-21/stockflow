@@ -1,0 +1,47 @@
+@model StockFlow.Web.Pages.Categories.CategoryRowViewModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+<tr id="category-row-@Model.Category.Id">
+    <td>@Localizer.CategoryName(Model.Category.Code, Model.Category.Name)</td>
+    <td class="text-end">@Model.Category.ProductCount</td>
+    <td>
+        @if (Model.Category.IsActive)
+        {
+            <span class="badge bg-success">@Localizer["ActiveStatus"]</span>
+        }
+        else
+        {
+            <span class="badge bg-secondary">@Localizer["InactiveStatus"]</span>
+        }
+    </td>
+    <td class="text-end">
+        <a asp-page="Edit" asp-route-id="@Model.Category.Id" class="btn btn-sm btn-outline-secondary">@Localizer["Edit"]</a>
+        @if (Model.Category.IsActive)
+        {
+            <form method="post"
+                  asp-page-handler="Deactivate"
+                  asp-route-id="@Model.Category.Id"
+                  asp-route-pageNumber="@Model.PageNumber"
+                  asp-route-search="@Model.Search"
+                  class="d-inline">
+                <button type="submit"
+                        class="btn btn-sm btn-outline-danger"
+                        disabled="@(Model.Category.ProductCount > 0)"
+                        title="@(Model.Category.ProductCount > 0 ? Localizer["CategoryInUse"].Value : string.Empty)">
+                    @Localizer["Deactivate"]
+                </button>
+            </form>
+        }
+        else
+        {
+            <form method="post"
+                  asp-page-handler="Activate"
+                  asp-route-id="@Model.Category.Id"
+                  asp-route-pageNumber="@Model.PageNumber"
+                  asp-route-search="@Model.Search"
+                  class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-success">@Localizer["Activate"]</button>
+            </form>
+        }
+    </td>
+</tr>

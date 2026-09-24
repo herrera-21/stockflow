@@ -15,6 +15,9 @@
     <div class="card-header">@Model.Customer.Name</div>
     <div class="card-body">
         <dl class="row mb-0">
+            <dt class="col-sm-3">@Localizer["DocumentType"]</dt>
+            <dd class="col-sm-9">@Localizer.DocumentTypeName(Model.Customer.DocumentType)</dd>
+
             <dt class="col-sm-3">@Localizer["TaxId"]</dt>
             <dd class="col-sm-9">@Model.Customer.TaxId</dd>
 

@@ -3,7 +3,7 @@
 @inject IStringLocalizer<SharedResource> Localizer
 <tr id="supplier-row-@Model.Supplier.Id">
     <td>@Model.Supplier.Name</td>
-    <td>@Model.Supplier.TaxId</td>
+    <td>@Localizer.DocumentTypeName(Model.Supplier.DocumentType) @Model.Supplier.TaxId</td>
     <td>@Model.Supplier.ContactName</td>
     <td>@Model.Supplier.Phone</td>
     <td>@Model.Supplier.Email</td>

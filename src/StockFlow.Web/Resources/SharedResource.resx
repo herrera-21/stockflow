@@ -34,8 +34,17 @@
   <data name="NavHome" xml:space="preserve">
     <value>Inicio</value>
   </data>
-  <data name="NavPrivacy" xml:space="preserve">
-    <value>Privacidad</value>
+  <data name="ToggleNavigation" xml:space="preserve">
+    <value>Mostrar u ocultar la navegación</value>
+  </data>
+  <data name="CollapseNavigation" xml:space="preserve">
+    <value>Contraer navegación</value>
+  </data>
+  <data name="ExpandNavigation" xml:space="preserve">
+    <value>Expandir navegación</value>
+  </data>
+  <data name="MainNavigation" xml:space="preserve">
+    <value>Navegación principal</value>
   </data>
   <data name="Login" xml:space="preserve">
     <value>Iniciar sesión</value>
@@ -315,5 +324,263 @@
   </data>
   <data name="SupplierProductRemoved" xml:space="preserve">
     <value>Producto quitado correctamente.</value>
+  </data>
+  <data name="SkuHelp" xml:space="preserve">
+    <value>Código interno único del producto. Usa un prefijo por categoría, por ejemplo LIMP-001.</value>
+  </data>
+  <data name="SkuPlaceholder" xml:space="preserve">
+    <value>LIMP-001</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="SelectCategory" xml:space="preserve">
+    <value>Selecciona una categoría</value>
+  </data>
+  <data name="NavCategories" xml:space="preserve">
+    <value>Categorías</value>
+  </data>
+  <data name="CategoriesTitle" xml:space="preserve">
+    <value>Categorías</value>
+  </data>
+  <data name="NewCategory" xml:space="preserve">
+    <value>Nueva categoría</value>
+  </data>
+  <data name="CreateCategoryTitle" xml:space="preserve">
+    <value>Crear categoría</value>
+  </data>
+  <data name="EditCategoryTitle" xml:space="preserve">
+    <value>Editar categoría</value>
+  </data>
+  <data name="EmptyCategories" xml:space="preserve">
+    <value>No hay categorías para mostrar.</value>
+  </data>
+  <data name="SearchCategoriesPlaceholder" xml:space="preserve">
+    <value>Buscar por nombre...</value>
+  </data>
+  <data name="CategoryName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="CategoryProductCount" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="CategoryCreated" xml:space="preserve">
+    <value>Categoría creada correctamente.</value>
+  </data>
+  <data name="CategoryUpdated" xml:space="preserve">
+    <value>Categoría actualizada correctamente.</value>
+  </data>
+  <data name="CategoryDeactivated" xml:space="preserve">
+    <value>Categoría desactivada correctamente.</value>
+  </data>
+  <data name="CategoryActivated" xml:space="preserve">
+    <value>Categoría reactivada correctamente.</value>
+  </data>
+  <data name="CategoryNameAlreadyExists" xml:space="preserve">
+    <value>Ya existe una categoría con ese nombre.</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>Categoría no encontrada.</value>
+  </data>
+  <data name="CategoryInUse" xml:space="preserve">
+    <value>No se puede desactivar: hay productos asociados a esta categoría.</value>
+  </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Reactivar</value>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>Sin resultados</value>
+  </data>
+  <data name="Category_cleaning" xml:space="preserve">
+    <value>Limpieza</value>
+  </data>
+  <data name="Category_beverages" xml:space="preserve">
+    <value>Bebidas</value>
+  </data>
+  <data name="Category_food" xml:space="preserve">
+    <value>Alimentos</value>
+  </data>
+  <data name="Category_snacks" xml:space="preserve">
+    <value>Snacks</value>
+  </data>
+  <data name="Category_dairy" xml:space="preserve">
+    <value>Lácteos</value>
+  </data>
+  <data name="Category_bakery" xml:space="preserve">
+    <value>Panadería</value>
+  </data>
+  <data name="Category_personal_care" xml:space="preserve">
+    <value>Cuidado personal</value>
+  </data>
+  <data name="Category_other" xml:space="preserve">
+    <value>Otros</value>
+  </data>
+  <data name="FullName" xml:space="preserve">
+    <value>Nombre completo</value>
+  </data>
+  <data name="CustomerNameHelp" xml:space="preserve">
+    <value>Nombre completo de la persona o razón social de la empresa.</value>
+  </data>
+  <data name="DocumentType" xml:space="preserve">
+    <value>Tipo de documento</value>
+  </data>
+  <data name="SelectDocumentType" xml:space="preserve">
+    <value>Selecciona tipo de documento</value>
+  </data>
+  <data name="DocumentTypeDui" xml:space="preserve">
+    <value>DUI</value>
+  </data>
+  <data name="DocumentTypeNit" xml:space="preserve">
+    <value>NIT</value>
+  </data>
+  <data name="DocumentTypePassport" xml:space="preserve">
+    <value>Pasaporte</value>
+  </data>
+  <data name="DocumentTypeOther" xml:space="preserve">
+    <value>Otro</value>
+  </data>
+  <data name="DocumentTypeHelp" xml:space="preserve">
+    <value>DUI: 00000000-0. NIT: para personas naturales es el DUI (homologado); para empresas, 0000-000000-000-0.</value>
+  </data>
+  <data name="ValidationDocument" xml:space="preserve">
+    <value>El número de documento no es válido para el tipo seleccionado.</value>
+  </data>
+  <data name="ValidationPersonName" xml:space="preserve">
+    <value>El campo {0} solo admite letras, espacios y los caracteres . ' -</value>
+  </data>
+  <data name="ValidationPhone" xml:space="preserve">
+    <value>El campo {0} no es un número de teléfono válido.</value>
+  </data>
+  <data name="BaseUnit" xml:space="preserve">
+    <value>Unidad de venta</value>
+  </data>
+  <data name="PurchaseUnit" xml:space="preserve">
+    <value>Unidad de compra</value>
+  </data>
+  <data name="PurchaseUnitFactor" xml:space="preserve">
+    <value>Contenido por unidad de compra</value>
+  </data>
+  <data name="BaseUnitHelp" xml:space="preserve">
+    <value>Unidad en la que llevas el stock y cobras el precio de venta.</value>
+  </data>
+  <data name="BaseUnitEditHelp" xml:space="preserve">
+    <value>Unidad en la que llevas el stock y cobras el precio de venta. Solo se puede cambiar si el producto no tiene stock.</value>
+  </data>
+  <data name="PurchaseUnitHelp" xml:space="preserve">
+    <value>Unidad en la que se lo compras al proveedor.</value>
+  </data>
+  <data name="PurchaseUnitFactorHelp" xml:space="preserve">
+    <value>Cuántas unidades de venta trae una unidad de compra. Ejemplo: 1 caja = 24 unidades.</value>
+  </data>
+  <data name="PurchasePriceHelp" xml:space="preserve">
+    <value>Precio por unidad de compra.</value>
+  </data>
+  <data name="UnitCostHint" xml:space="preserve">
+    <value>Costo por unidad calculado: {0} ÷ {1} = {2} por {3}</value>
+  </data>
+  <data name="ProductBaseUnitLocked" xml:space="preserve">
+    <value>La unidad de venta no se puede cambiar mientras el producto tenga stock.</value>
+  </data>
+  <data name="ValidationSameUnitFactor" xml:space="preserve">
+    <value>El campo {0} debe ser 1 cuando la unidad de compra y la de venta son iguales.</value>
+  </data>
+  <data name="ValidationWholeQuantity" xml:space="preserve">
+    <value>El campo {0} debe ser un número entero para la unidad de venta seleccionada.</value>
+  </data>
+  <data name="UnitOfMeasureUnit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="UnitOfMeasureDozen" xml:space="preserve">
+    <value>Docena</value>
+  </data>
+  <data name="UnitOfMeasureBox" xml:space="preserve">
+    <value>Caja</value>
+  </data>
+  <data name="UnitOfMeasurePack" xml:space="preserve">
+    <value>Paquete</value>
+  </data>
+  <data name="UnitOfMeasurePound" xml:space="preserve">
+    <value>Libra</value>
+  </data>
+  <data name="UnitOfMeasureOunce" xml:space="preserve">
+    <value>Onza</value>
+  </data>
+  <data name="UnitOfMeasureKilogram" xml:space="preserve">
+    <value>Kilogramo</value>
+  </data>
+  <data name="UnitOfMeasureGram" xml:space="preserve">
+    <value>Gramo</value>
+  </data>
+  <data name="UnitOfMeasureLiter" xml:space="preserve">
+    <value>Litro</value>
+  </data>
+  <data name="UnitOfMeasureMilliliter" xml:space="preserve">
+    <value>Mililitro</value>
+  </data>
+  <data name="UnitOfMeasureGallon" xml:space="preserve">
+    <value>Galón</value>
+  </data>
+  <data name="UnitOfMeasureMeter" xml:space="preserve">
+    <value>Metro</value>
+  </data>
+  <data name="UnitOfMeasureShortUnit" xml:space="preserve">
+    <value>u</value>
+  </data>
+  <data name="UnitOfMeasureShortDozen" xml:space="preserve">
+    <value>doc</value>
+  </data>
+  <data name="UnitOfMeasureShortBox" xml:space="preserve">
+    <value>caja</value>
+  </data>
+  <data name="UnitOfMeasureShortPack" xml:space="preserve">
+    <value>paq</value>
+  </data>
+  <data name="UnitOfMeasureShortPound" xml:space="preserve">
+    <value>lb</value>
+  </data>
+  <data name="UnitOfMeasureShortOunce" xml:space="preserve">
+    <value>oz</value>
+  </data>
+  <data name="UnitOfMeasureShortKilogram" xml:space="preserve">
+    <value>kg</value>
+  </data>
+  <data name="UnitOfMeasureShortGram" xml:space="preserve">
+    <value>g</value>
+  </data>
+  <data name="UnitOfMeasureShortLiter" xml:space="preserve">
+    <value>L</value>
+  </data>
+  <data name="UnitOfMeasureShortMilliliter" xml:space="preserve">
+    <value>ml</value>
+  </data>
+  <data name="UnitOfMeasureShortGallon" xml:space="preserve">
+    <value>gal</value>
+  </data>
+  <data name="UnitOfMeasureShortMeter" xml:space="preserve">
+    <value>m</value>
+  </data>
+  <data name="CurrencySymbol" xml:space="preserve">
+    <value>$</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>opcional</value>
+  </data>
+  <data name="SupplierProductsIntro" xml:space="preserve">
+    <value>Indica qué productos te vende este proveedor, con qué código los identifica y a qué precio te los deja.</value>
+  </data>
+  <data name="SupplierSkuHelp" xml:space="preserve">
+    <value>El código que usa el proveedor para este producto en su catálogo o factura. Te sirve para encontrarlo al hacerle un pedido.</value>
+  </data>
+  <data name="SupplierPriceHelpDefault" xml:space="preserve">
+    <value>Precio que te cobra este proveedor por unidad de compra.</value>
+  </data>
+  <data name="SupplierPriceHelp" xml:space="preserve">
+    <value>Precio que te cobra este proveedor por {0}.</value>
+  </data>
+  <data name="SupplierPriceReference" xml:space="preserve">
+    <value>Referencia: el precio de compra general del producto es {0}.</value>
+  </data>
+  <data name="PreferredSupplierHelp" xml:space="preserve">
+    <value>Proveedor al que le compras este producto normalmente. Solo puede haber uno por producto.</value>
   </data>
 </root>

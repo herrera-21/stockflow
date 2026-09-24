@@ -17,6 +17,9 @@ public static class Policies
     /// <summary>Policy name for managing suppliers. Only administrators and inventory managers pass.</summary>
     public const string CanManageSuppliers = "CanManageSuppliers";
 
+    /// <summary>Policy name for managing categories. Only administrators pass.</summary>
+    public const string CanManageCategories = "CanManageCategories";
+
     /// <summary>
     /// Registers the application authorization policies.
     /// </summary>
@@ -34,5 +37,10 @@ public static class Policies
         options.AddPolicy(CanManageSuppliers, policy => policy
             .RequireAuthenticatedUser()
             .RequireRole(ApplicationRoles.Administrator, ApplicationRoles.InventoryManager));
+
+        // Categories define the shared catalog, so only administrators may change them.
+        options.AddPolicy(CanManageCategories, policy => policy
+            .RequireAuthenticatedUser()
+            .RequireRole(ApplicationRoles.Administrator));
     }
 }

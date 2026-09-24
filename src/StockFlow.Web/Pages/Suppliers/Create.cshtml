@@ -13,15 +13,24 @@
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+            <div class="mb-3">
+                <label asp-for="Input.Name" class="form-label"></label>
+                <input asp-for="Input.Name" class="form-control" />
+                <span asp-validation-for="Input.Name" class="text-danger"></span>
+            </div>
+
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Input.Name" class="form-label"></label>
-                    <input asp-for="Input.Name" class="form-control" />
-                    <span asp-validation-for="Input.Name" class="text-danger"></span>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.DocumentType" class="form-label"></label>
+                    <select asp-for="Input.DocumentType" asp-items="Model.DocumentTypes" class="form-select">
+                        <option value="">@Localizer["SelectDocumentType"]</option>
+                    </select>
+                    <span asp-validation-for="Input.DocumentType" class="text-danger"></span>
                 </div>
-                <div class="col-md-6 mb-3">
+                <div class="col-md-8 mb-3">
                     <label asp-for="Input.TaxId" class="form-label"></label>
-                    <input asp-for="Input.TaxId" class="form-control" />
+                    <input asp-for="Input.TaxId" class="form-control js-document" autocomplete="off" />
+                    <div class="form-text">@Localizer["DocumentTypeHelp"]</div>
                     <span asp-validation-for="Input.TaxId" class="text-danger"></span>
                 </div>
             </div>

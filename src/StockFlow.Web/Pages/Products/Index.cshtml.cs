@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
+using StockFlow.Application.Categories.Queries;
 using StockFlow.Application.Common.Models;
 using StockFlow.Application.Products;
 using StockFlow.Application.Products.Commands;
 using StockFlow.Application.Products.Queries;
 using StockFlow.Web.Authorization;
+using StockFlow.Web.Localization;
 
 namespace StockFlow.Web.Pages.Products;
 
@@ -21,22 +24,26 @@ public class IndexModel : PageModel
 
     // Use cases and services used to render the list and process deactivation.
     private readonly GetProductsPagedHandler _getProducts;
+    private readonly GetCategoriesHandler _getCategories;
     private readonly DeactivateProductHandler _deactivateProduct;
     private readonly IAuthorizationService _authorizationService;
     private readonly IStringLocalizer<SharedResource> _localizer;
 
     /// <summary>Initializes the page model.</summary>
     /// <param name="getProducts">Query handler that loads the page of products.</param>
+    /// <param name="getCategories">Query handler that loads the active categories.</param>
     /// <param name="deactivateProduct">Command handler that soft-deletes a product.</param>
     /// <param name="authorizationService">Service used to check the manage-products policy.</param>
     /// <param name="localizer">Localizer for UI messages.</param>
     public IndexModel(
         GetProductsPagedHandler getProducts,
+        GetCategoriesHandler getCategories,
         DeactivateProductHandler deactivateProduct,
         IAuthorizationService authorizationService,
         IStringLocalizer<SharedResource> localizer)
     {
         _getProducts = getProducts;
+        _getCategories = getCategories;
         _deactivateProduct = deactivateProduct;
         _authorizationService = authorizationService;
         _localizer = localizer;
@@ -48,6 +55,9 @@ public class IndexModel : PageModel
     /// <summary>True when the current user may manage products.</summary>
     public bool CanManageProducts { get; private set; }
 
+    /// <summary>Active categories offered by the filter.</summary>
+    public IReadOnlyList<SelectListItem> Categories { get; private set; } = [];
+
     /// <summary>Current page number, bound from the query string.</summary>
     [BindProperty(SupportsGet = true, Name = "pageNumber")]
     public int PageNumber { get; set; } = 1;
@@ -57,8 +67,8 @@ public class IndexModel : PageModel
     public string? Search { get; set; }
 
     /// <summary>Optional category filter, bound from the query string.</summary>
-    [BindProperty(SupportsGet = true, Name = "category")]
-    public string? Category { get; set; }
+    [BindProperty(SupportsGet = true, Name = "categoryId")]
+    public Guid? CategoryId { get; set; }
 
     /// <summary>Handles GET requests and loads the requested page of products.</summary>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -86,14 +96,14 @@ public class IndexModel : PageModel
     /// <param name="id">Identifier of the product to deactivate.</param>
     /// <param name="pageNumber">Current page number, preserved across the redirect.</param>
     /// <param name="search">Current search text, preserved across the redirect.</param>
-    /// <param name="category">Current category filter, preserved across the redirect.</param>
+    /// <param name="categoryId">Current category filter, preserved across the redirect.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The updated row, or a redirect back to the list.</returns>
     public async Task<IActionResult> OnPostDeactivateAsync(
         Guid id,
         int pageNumber,
         string? search,
-        string? category,
+        Guid? categoryId,
         CancellationToken cancellationToken)
     {
         if (!await CanManageAsync())
@@ -113,7 +123,7 @@ public class IndexModel : PageModel
                 return new EmptyResult();
             }
 
-            return Partial("_ProductRow", new ProductRowViewModel(result.Value!, true, pageNumber, search, category));
+            return Partial("_ProductRow", new ProductRowViewModel(result.Value!, true, pageNumber, search, categoryId));
         }
 
         if (result.IsSuccess)
@@ -125,16 +135,19 @@ public class IndexModel : PageModel
             TempData["ErrorMessage"] = _localizer[result.Error!].Value;
         }
 
-        return RedirectToPage("Index", new { pageNumber, search, category });
+        return RedirectToPage("Index", new { pageNumber, search, categoryId });
     }
 
-    // Loads the page of products and the manage-products flag.
+    // Loads the page of products, the manage-products flag and the category filter options.
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
         CanManageProducts = await CanManageAsync();
         Products = await _getProducts.HandleAsync(
-            new GetProductsPagedQuery(PageNumber, PageSize, Search, Category),
+            new GetProductsPagedQuery(PageNumber, PageSize, Search, CategoryId),
             cancellationToken);
+
+        var categories = await _getCategories.HandleAsync(new GetCategoriesQuery(), cancellationToken);
+        Categories = _localizer.ToCategorySelectList(categories);
     }
 
     // Checks whether the current user satisfies the manage-products policy.

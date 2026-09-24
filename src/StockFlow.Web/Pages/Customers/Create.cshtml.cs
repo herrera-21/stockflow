@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
 using StockFlow.Application.Customers.Commands;
 using StockFlow.Web.Authorization;
+using StockFlow.Web.Localization;
 
 namespace StockFlow.Web.Pages.Customers;
 
@@ -30,9 +32,13 @@ public class CreateModel : PageModel
     [BindProperty]
     public CreateCustomerInputModel Input { get; set; } = new();
 
-    /// <summary>Handles GET requests.</summary>
+    /// <summary>Identity document types offered by the form.</summary>
+    public IReadOnlyList<SelectListItem> DocumentTypes { get; private set; } = [];
+
+    /// <summary>Handles GET requests and loads the document types.</summary>
     public void OnGet()
     {
+        DocumentTypes = _localizer.ToDocumentTypeSelectList();
     }
 
     /// <summary>
@@ -44,11 +50,13 @@ public class CreateModel : PageModel
     {
         if (!ModelState.IsValid)
         {
+            DocumentTypes = _localizer.ToDocumentTypeSelectList();
             return Page();
         }
 
         var command = new CreateCustomerCommand(
             Input.Name,
+            Input.DocumentType!.Value,
             Input.TaxId,
             Input.Phone,
             Input.Email,
@@ -59,6 +67,7 @@ public class CreateModel : PageModel
         if (!result.IsSuccess)
         {
             ModelState.AddModelError("Input.TaxId", _localizer[result.Error!]);
+            DocumentTypes = _localizer.ToDocumentTypeSelectList();
             return Page();
         }
 

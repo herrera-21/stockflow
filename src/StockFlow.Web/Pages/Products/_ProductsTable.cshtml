@@ -25,7 +25,7 @@ else
         <tbody>
             @foreach (var product in Model.Products.Items)
             {
-                <partial name="_ProductRow" model="new ProductRowViewModel(product, Model.CanManageProducts, Model.PageNumber, Model.Search, Model.Category)" />
+                <partial name="_ProductRow" model="new ProductRowViewModel(product, Model.CanManageProducts, Model.PageNumber, Model.Search, Model.CategoryId)" />
             }
         </tbody>
     </table>
@@ -36,8 +36,8 @@ else
             <ul class="pagination">
                 <li class="page-item @(Model.Products.HasPreviousPage ? string.Empty : "disabled")">
                     <a class="page-link"
-                       href="@Url.Page("/Products/Index", null, new { pageNumber = Model.PageNumber - 1, search = Model.Search, category = Model.Category })"
-                       hx-get="@Url.Page("/Products/Index", "Rows", new { pageNumber = Model.PageNumber - 1, search = Model.Search, category = Model.Category })"
+                       href="@Url.Page("/Products/Index", null, new { pageNumber = Model.PageNumber - 1, search = Model.Search, categoryId = Model.CategoryId })"
+                       hx-get="@Url.Page("/Products/Index", "Rows", new { pageNumber = Model.PageNumber - 1, search = Model.Search, categoryId = Model.CategoryId })"
                        hx-target="#products-container"
                        hx-swap="innerHTML">@Localizer["Previous"]</a>
                 </li>
@@ -46,8 +46,8 @@ else
                 </li>
                 <li class="page-item @(Model.Products.HasNextPage ? string.Empty : "disabled")">
                     <a class="page-link"
-                       href="@Url.Page("/Products/Index", null, new { pageNumber = Model.PageNumber + 1, search = Model.Search, category = Model.Category })"
-                       hx-get="@Url.Page("/Products/Index", "Rows", new { pageNumber = Model.PageNumber + 1, search = Model.Search, category = Model.Category })"
+                       href="@Url.Page("/Products/Index", null, new { pageNumber = Model.PageNumber + 1, search = Model.Search, categoryId = Model.CategoryId })"
+                       hx-get="@Url.Page("/Products/Index", "Rows", new { pageNumber = Model.PageNumber + 1, search = Model.Search, categoryId = Model.CategoryId })"
                        hx-target="#products-container"
                        hx-swap="innerHTML">@Localizer["Next"]</a>
                 </li>

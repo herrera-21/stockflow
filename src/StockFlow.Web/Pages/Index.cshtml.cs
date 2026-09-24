@@ -4,13 +4,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 namespace StockFlow.Web.Pages;
 
 /// <summary>
-/// Home page. Currently a static landing page.
+/// Home route. Redirects to the product list, which is the application's landing page.
 /// </summary>
 public class IndexModel : PageModel
 {
-    /// <summary>Handles GET requests for the home page.</summary>
-    public void OnGet()
-    {
-
-    }
+    /// <summary>Redirects to the product list.</summary>
+    /// <returns>A redirect to the products page.</returns>
+    public IActionResult OnGet() => RedirectToPage("/Products/Index");
 }

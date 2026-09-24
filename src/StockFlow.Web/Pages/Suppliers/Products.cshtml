@@ -11,6 +11,8 @@
     <a asp-page="Index" class="btn btn-outline-secondary">@Localizer["BackToList"]</a>
 </div>
 
+<p class="text-body-secondary">@Localizer["SupplierProductsIntro"]</p>
+
 <div class="card mb-3">
     <div class="card-header">@Model.Supplier.Name</div>
     <div class="card-body">
@@ -30,31 +32,49 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label asp-for="Input.ProductId" class="form-label"></label>
-                    <select asp-for="Input.ProductId" class="form-select">
+                    <select asp-for="Input.ProductId" class="form-select js-supplier-product">
                         <option value="">@Localizer["SelectProduct"]</option>
                         @foreach (var product in Model.AvailableProducts)
                         {
-                            <option value="@product.Id">@product.Name (@product.Sku)</option>
+                            <option value="@product.Id"
+                                    data-unit="@Localizer.UnitName(product.PurchaseUnit)"
+                                    data-price="@Localizer.FormatMoney(product.PurchasePrice)">@product.Name (@product.Sku)</option>
                         }
                     </select>
                     <span asp-validation-for="Input.ProductId" class="text-danger"></span>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <label asp-for="Input.SupplierSku" class="form-label"></label>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.SupplierSku" class="form-label">
+                        @Html.DisplayNameFor(m => m.Input.SupplierSku)
+                        <span class="text-body-secondary fw-normal">(@Localizer["Optional"])</span>
+                    </label>
                     <input asp-for="Input.SupplierSku" class="form-control" />
+                    <div class="form-text">@Localizer["SupplierSkuHelp"]</div>
                     <span asp-validation-for="Input.SupplierSku" class="text-danger"></span>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <label asp-for="Input.PurchasePrice" class="form-label"></label>
-                    <input asp-for="Input.PurchasePrice" class="form-control" />
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.PurchasePrice" class="form-label">
+                        @Html.DisplayNameFor(m => m.Input.PurchasePrice)
+                        <span class="text-body-secondary fw-normal">(@Localizer["Optional"])</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">@Localizer["CurrencySymbol"]</span>
+                        <input asp-for="Input.PurchasePrice" class="form-control js-numeric" type="text" inputmode="decimal" />
+                    </div>
+                    <div class="form-text" id="supplier-price-help"
+                         data-template="@Localizer["SupplierPriceHelp"]">@Localizer["SupplierPriceHelpDefault"]</div>
+                    <div class="form-text" id="supplier-price-reference"
+                         data-template="@Localizer["SupplierPriceReference"]" hidden></div>
                     <span asp-validation-for="Input.PurchasePrice" class="text-danger"></span>
                 </div>
-                <div class="col-md-2 mb-3 d-flex align-items-end">
-                    <div class="form-check">
-                        <input asp-for="Input.IsPreferred" class="form-check-input" />
-                        <label asp-for="Input.IsPreferred" class="form-check-label"></label>
-                    </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input asp-for="Input.IsPreferred" class="form-check-input" />
+                    <label asp-for="Input.IsPreferred" class="form-check-label"></label>
                 </div>
+                <div class="form-text">@Localizer["PreferredSupplierHelp"]</div>
             </div>
 
             <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
@@ -87,7 +107,12 @@ else
                         <td>@product.ProductName</td>
                         <td>@product.ProductSku</td>
                         <td>@product.SupplierSku</td>
-                        <td>@product.PurchasePrice</td>
+                        <td>
+                            @if (product.PurchasePrice is decimal price)
+                            {
+                                @Localizer.FormatMoney(price) <span class="text-body-secondary small">/ @Localizer.UnitSymbol(product.PurchaseUnit)</span>
+                            }
+                        </td>
                         <td>
                             @if (product.IsPreferred)
                             {

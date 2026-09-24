@@ -1,0 +1,27 @@
+@page
+@model StockFlow.Web.Pages.Categories.IndexModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["CategoriesTitle"];
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>@Localizer["CategoriesTitle"]</h1>
+    <a asp-page="Create" class="btn btn-primary">@Localizer["NewCategory"]</a>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-8">
+        <input type="search" id="category-search" name="search" value="@Model.Search" class="form-control"
+               placeholder="@Localizer["SearchCategoriesPlaceholder"]"
+               hx-get="@Url.Page("/Categories/Index", "Rows")"
+               hx-trigger="keyup changed delay:300ms, search"
+               hx-target="#categories-container"
+               hx-swap="innerHTML" />
+    </div>
+</div>
+
+<div id="categories-container">
+    <partial name="_CategoriesTable" model="Model" />
+</div>

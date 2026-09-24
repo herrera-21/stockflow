@@ -6,79 +6,143 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - StockFlow.Web</title>
+    <title>@ViewData["Title"] - StockFlow</title>
     <script type="importmap"></script>
+    <script>
+        // Applies the remembered sidebar state before first paint to avoid a flash of the wrong
+        // layout. Kept inline and minimal because site.js loads at the end of the body.
+        (function () {
+            try {
+                if (window.localStorage.getItem('stockflow.sidebar') === 'collapsed') {
+                    document.documentElement.classList.add('app-sidebar-collapsed');
+                }
+            } catch (error) {
+                // localStorage can be unavailable (for example in private mode): stay expanded.
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/tom-select/tom-select.bootstrap5.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/StockFlow.Web.styles.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">StockFlow.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">@Localizer["NavHome"]</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">@Localizer["NavPrivacy"]</a>
-                        </li>
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Products/Index">@Localizer["NavProducts"]</a>
-                            </li>
-                        }
-                        @if (User.IsInRole(ApplicationRoles.Administrator) || User.IsInRole(ApplicationRoles.Salesperson))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Customers/Index">@Localizer["NavCustomers"]</a>
-                            </li>
-                        }
-                        @if (User.IsInRole(ApplicationRoles.Administrator) || User.IsInRole(ApplicationRoles.InventoryManager))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Suppliers/Index">@Localizer["NavSuppliers"]</a>
-                            </li>
-                        }
-                    </ul>
-                    <partial name="_LanguageSelector" />
-                    <partial name="_LoginPartial" />
-                </div>
-            </div>
-        </nav>
+<body class="app-shell">
+    <header class="app-header" data-bs-theme="dark">
+        <button class="app-sidebar-toggle" type="button" aria-label="@Localizer["ToggleNavigation"]"
+                aria-controls="appSidebar" aria-expanded="true" data-sidebar-toggle
+                data-label-collapse="@Localizer["CollapseNavigation"]"
+                data-label-expand="@Localizer["ExpandNavigation"]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 6h18M3 12h18M3 18h18" />
+            </svg>
+        </button>
+        <a class="app-brand" asp-area="" asp-page="/Products/Index">StockFlow</a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <partial name="_LanguageSelector" />
+            <partial name="_LoginPartial" />
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <aside class="app-sidebar" id="appSidebar" data-bs-theme="dark">
+        <nav class="nav flex-column app-nav" aria-label="@Localizer["MainNavigation"]">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a class="nav-link app-nav-link @(IsActive("/Products") ? "active" : "")"
+                   asp-area="" asp-page="/Products/Index"
+                   aria-current="@(IsActive("/Products") ? "page" : null)"
+                   title="@Localizer["NavProducts"]">
+                    <svg class="app-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 7l9-4 9 4v10l-9 4-9-4V7z" />
+                        <path d="M3 7l9 4 9-4M12 11v10" />
+                    </svg>
+                    <span class="app-nav-label">@Localizer["NavProducts"]</span>
+                </a>
+            }
+            @if (User.IsInRole(ApplicationRoles.Administrator) || User.IsInRole(ApplicationRoles.Salesperson))
+            {
+                <a class="nav-link app-nav-link @(IsActive("/Customers") ? "active" : "")"
+                   asp-area="" asp-page="/Customers/Index"
+                   aria-current="@(IsActive("/Customers") ? "page" : null)"
+                   title="@Localizer["NavCustomers"]">
+                    <svg class="app-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="9" cy="8" r="3" />
+                        <path d="M3 20a6 6 0 0 1 12 0" />
+                        <path d="M16 6a3 3 0 0 1 0 6M18 20a6 6 0 0 0-3-5.2" />
+                    </svg>
+                    <span class="app-nav-label">@Localizer["NavCustomers"]</span>
+                </a>
+            }
+            @if (User.IsInRole(ApplicationRoles.Administrator) || User.IsInRole(ApplicationRoles.InventoryManager))
+            {
+                <a class="nav-link app-nav-link @(IsActive("/Suppliers") ? "active" : "")"
+                   asp-area="" asp-page="/Suppliers/Index"
+                   aria-current="@(IsActive("/Suppliers") ? "page" : null)"
+                   title="@Localizer["NavSuppliers"]">
+                    <svg class="app-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 7h10v9H3z" />
+                        <path d="M13 10h4l3 3v3h-7z" />
+                        <circle cx="7" cy="18" r="1.6" />
+                        <circle cx="17" cy="18" r="1.6" />
+                    </svg>
+                    <span class="app-nav-label">@Localizer["NavSuppliers"]</span>
+                </a>
+            }
+            @if (User.IsInRole(ApplicationRoles.Administrator))
+            {
+                <a class="nav-link app-nav-link @(IsActive("/Categories") ? "active" : "")"
+                   asp-area="" asp-page="/Categories/Index"
+                   aria-current="@(IsActive("/Categories") ? "page" : null)"
+                   title="@Localizer["NavCategories"]">
+                    <svg class="app-nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M4 4h7l9 9-7 7-9-9V4z" />
+                        <circle cx="8.5" cy="8.5" r="1.2" />
+                    </svg>
+                    <span class="app-nav-label">@Localizer["NavCategories"]</span>
+                </a>
+            }
+        </nav>
+    </aside>
+
+    <div class="app-sidebar-backdrop" data-sidebar-backdrop></div>
+
+    <div class="app-content">
+        <main role="main" class="app-main">
             @if (TempData["StatusMessage"] is string statusMessage)
             {
-                <div class="alert alert-success" role="alert">@statusMessage</div>
+                <div class="alert alert-success alert-dismissible fade show js-auto-dismiss" role="alert">
+                    @statusMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="@Localizer["Close"]"></button>
+                </div>
             }
             @if (TempData["ErrorMessage"] is string errorMessage)
             {
-                <div class="alert alert-danger" role="alert">@errorMessage</div>
+                <div class="alert alert-danger alert-dismissible fade show js-auto-dismiss" role="alert">
+                    @errorMessage
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="@Localizer["Close"]"></button>
+                </div>
             }
             @RenderBody()
         </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - StockFlow.Web - <a asp-area="" asp-page="/Privacy">@Localizer["NavPrivacy"]</a>
-        </div>
-    </footer>
+        <footer class="app-footer text-muted">
+            &copy; 2026 - StockFlow
+        </footer>
+    </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/htmx/htmx.min.js"></script>
+    <script src="~/lib/tom-select/tom-select.complete.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+@functions {
+    // True when the current Razor Page path starts with the given prefix, used for the active link.
+    private bool IsActive(string prefix)
+    {
+        var page = ViewContext.RouteData.Values["page"] as string;
+        return page is not null && page.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+    }
+}

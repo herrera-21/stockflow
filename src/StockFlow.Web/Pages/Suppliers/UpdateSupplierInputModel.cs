@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using StockFlow.Domain;
+using StockFlow.Web.Validation;
 
 namespace StockFlow.Web.Pages.Suppliers;
 
@@ -16,19 +18,27 @@ public class UpdateSupplierInputModel
     [Display(Name = "Name")]
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>Tax identification; required and at most 50 characters.</summary>
+    /// <summary>Type of the identity document; required.</summary>
+    [Required(ErrorMessage = "ValidationRequired")]
+    [Display(Name = "DocumentType")]
+    public DocumentType? DocumentType { get; set; }
+
+    /// <summary>Identity document number; required and must match the selected type.</summary>
     [Required(ErrorMessage = "ValidationRequired")]
     [StringLength(50, ErrorMessage = "ValidationStringLength")]
+    [DocumentNumber(nameof(DocumentType), ErrorMessage = "ValidationDocument")]
     [Display(Name = "TaxId")]
     public string TaxId { get; set; } = string.Empty;
 
     /// <summary>Optional contact person name; at most 200 characters.</summary>
     [StringLength(200, ErrorMessage = "ValidationStringLength")]
+    [PersonName(ErrorMessage = "ValidationPersonName")]
     [Display(Name = "ContactName")]
     public string? ContactName { get; set; }
 
     /// <summary>Optional phone number; at most 50 characters.</summary>
     [StringLength(50, ErrorMessage = "ValidationStringLength")]
+    [PhoneNumber(ErrorMessage = "ValidationPhone")]
     [Display(Name = "Phone")]
     public string? Phone { get; set; }
 

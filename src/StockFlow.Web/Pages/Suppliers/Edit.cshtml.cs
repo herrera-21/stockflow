@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
 using StockFlow.Application.Suppliers;
 using StockFlow.Application.Suppliers.Commands;
 using StockFlow.Application.Suppliers.Queries;
 using StockFlow.Web.Authorization;
+using StockFlow.Web.Localization;
 
 namespace StockFlow.Web.Pages.Suppliers;
 
@@ -38,6 +40,9 @@ public class EditModel : PageModel
     [BindProperty]
     public UpdateSupplierInputModel Input { get; set; } = new();
 
+    /// <summary>Identity document types offered by the form.</summary>
+    public IReadOnlyList<SelectListItem> DocumentTypes { get; private set; } = [];
+
     /// <summary>
     /// Loads the supplier into the form.
     /// </summary>
@@ -57,12 +62,15 @@ public class EditModel : PageModel
         {
             Id = supplier.Id,
             Name = supplier.Name,
+            DocumentType = supplier.DocumentType,
             TaxId = supplier.TaxId,
             ContactName = supplier.ContactName,
             Phone = supplier.Phone,
             Email = supplier.Email,
             Address = supplier.Address
         };
+
+        DocumentTypes = _localizer.ToDocumentTypeSelectList();
 
         return Page();
     }
@@ -76,12 +84,14 @@ public class EditModel : PageModel
     {
         if (!ModelState.IsValid)
         {
+            DocumentTypes = _localizer.ToDocumentTypeSelectList();
             return Page();
         }
 
         var command = new UpdateSupplierCommand(
             Input.Id,
             Input.Name,
+            Input.DocumentType!.Value,
             Input.TaxId,
             Input.ContactName,
             Input.Phone,
@@ -98,6 +108,7 @@ public class EditModel : PageModel
             }
 
             ModelState.AddModelError("Input.TaxId", _localizer[result.Error!]);
+            DocumentTypes = _localizer.ToDocumentTypeSelectList();
             return Page();
         }
 

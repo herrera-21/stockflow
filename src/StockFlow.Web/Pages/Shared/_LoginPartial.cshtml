@@ -4,22 +4,14 @@
 @inject UserManager<IdentityUser> UserManager
 @inject IStringLocalizer<SharedResource> Localizer
 
-<ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <span class="nav-link text-dark">@Localizer["WelcomeUser", UserManager.GetUserName(User) ?? string.Empty]</span>
-    </li>
-    <li class="nav-item">
-        <form asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index")" method="post">
-            <button type="submit" class="nav-link btn btn-link text-dark border-0">@Localizer["Logout"]</button>
-        </form>
-    </li>
+    <span class="app-user">@Localizer["WelcomeUser", UserManager.GetUserName(User) ?? string.Empty]</span>
+    <form asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index")" method="post" class="d-inline">
+        <button type="submit" class="btn btn-link app-header-link">@Localizer["Logout"]</button>
+    </form>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-page="/Account/Login">@Localizer["Login"]</a>
-    </li>
+    <a class="app-header-link" asp-page="/Account/Login">@Localizer["Login"]</a>
 }
-</ul>

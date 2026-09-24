@@ -1,12 +1,16 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.DataAnnotations;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using StockFlow.Application;
 using StockFlow.Infrastructure.Identity;
 using StockFlow.Infrastructure.Persistence;
 using StockFlow.Web;
 using StockFlow.Web.Authorization;
+using StockFlow.Web.Validation;
 
 // Application entry point: wires up Razor Pages, localization, Identity and the layered services,
 // then seeds Identity data on startup. Top-level statements cannot carry XML documentation, so the
@@ -14,7 +18,20 @@ using StockFlow.Web.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Spanish first: it is the default culture for this app (see SetLanguage.cshtml.cs for the switcher).
-var supportedCultures = new[] { "es", "en" };
+// The numeric format is overridden to use the dot as decimal separator and the comma as group
+// separator, matching the HTML number inputs and the UI/UX convention. The culture is cloned so the
+// shared, read-only CultureInfo from the cache is never mutated.
+var spanishCulture = (CultureInfo)CultureInfo.GetCultureInfo("es").Clone();
+spanishCulture.NumberFormat.NumberDecimalSeparator = ".";
+spanishCulture.NumberFormat.NumberGroupSeparator = ",";
+spanishCulture.NumberFormat.CurrencyDecimalSeparator = ".";
+spanishCulture.NumberFormat.CurrencyGroupSeparator = ",";
+spanishCulture.NumberFormat.PercentDecimalSeparator = ".";
+spanishCulture.NumberFormat.PercentGroupSeparator = ",";
+
+var englishCulture = CultureInfo.GetCultureInfo("en");
+
+var supportedCultures = new[] { spanishCulture, englishCulture };
 
 // Add services to the container.
 builder.Services.AddRazorPages()
@@ -34,6 +51,9 @@ builder.Services.AddRazorPages()
         // Suppliers are managed by the same roles as products, so the whole folder requires the
         // manage-suppliers policy; salespeople have no access at all.
         options.Conventions.AuthorizeFolder("/Suppliers", Policies.CanManageSuppliers);
+
+        // Categories are part of the shared catalog and only administrators may change them.
+        options.Conventions.AuthorizeFolder("/Categories", Policies.CanManageCategories);
     })
     .AddViewLocalization()
     .AddDataAnnotationsLocalization(options =>
@@ -42,11 +62,19 @@ builder.Services.AddRazorPages()
         options.DataAnnotationLocalizerProvider = (_, factory) => factory.Create(typeof(SharedResource));
     });
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+// The built-in validation attributes are localized out of the box, but the custom ones need an
+// adapter that resolves their ErrorMessage key against the shared resources; without it the raw
+// key would be shown to the user.
+builder.Services.Replace(
+    ServiceDescriptor.Singleton<IValidationAttributeAdapterProvider, LocalizedValidationAttributeAdapterProvider>());
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
-    options.SetDefaultCulture(supportedCultures[0]);
-    options.AddSupportedCultures(supportedCultures);
-    options.AddSupportedUICultures(supportedCultures);
+    // The modified culture instances must be the ones registered, otherwise the middleware would
+    // resolve the cached "es" culture (comma decimal separator) by name and the override is lost.
+    options.DefaultRequestCulture = new RequestCulture(spanishCulture, spanishCulture);
+    options.SupportedCultures = supportedCultures.ToList();
+    options.SupportedUICultures = supportedCultures.ToList();
 });
 
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -83,9 +111,11 @@ app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
-// Idempotent: creates the fixed roles and the seed admin account only if they do not exist yet.
+// Keeps the schema current on every startup (creates the database when missing) and then seeds
+// the fixed roles and the seed accounts, both idempotently.
 using (var scope = app.Services.CreateScope())
 {
+    await DatabaseInitializer.MigrateAsync(scope.ServiceProvider);
     await IdentitySeeder.SeedAsync(scope.ServiceProvider);
 }
 

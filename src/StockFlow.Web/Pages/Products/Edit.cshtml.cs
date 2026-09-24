@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Localization;
+using StockFlow.Application.Categories.Queries;
 using StockFlow.Application.Products;
 using StockFlow.Application.Products.Commands;
 using StockFlow.Application.Products.Queries;
 using StockFlow.Web.Authorization;
+using StockFlow.Web.Localization;
 
 namespace StockFlow.Web.Pages.Products;
 
@@ -18,25 +21,35 @@ public class EditModel : PageModel
     // Use cases and localizer used to load and update the product.
     private readonly GetProductByIdHandler _getProduct;
     private readonly UpdateProductHandler _updateProduct;
+    private readonly GetCategoriesHandler _getCategories;
     private readonly IStringLocalizer<SharedResource> _localizer;
 
     /// <summary>Initializes the page model.</summary>
     /// <param name="getProduct">Query handler that loads the product.</param>
     /// <param name="updateProduct">Command handler that updates the product.</param>
+    /// <param name="getCategories">Query handler that loads the active categories.</param>
     /// <param name="localizer">Localizer for UI messages.</param>
     public EditModel(
         GetProductByIdHandler getProduct,
         UpdateProductHandler updateProduct,
+        GetCategoriesHandler getCategories,
         IStringLocalizer<SharedResource> localizer)
     {
         _getProduct = getProduct;
         _updateProduct = updateProduct;
+        _getCategories = getCategories;
         _localizer = localizer;
     }
 
     /// <summary>Data posted by the edit form.</summary>
     [BindProperty]
     public UpdateProductInputModel Input { get; set; } = new();
+
+    /// <summary>Active categories offered by the form.</summary>
+    public IReadOnlyList<SelectListItem> Categories { get; private set; } = [];
+
+    /// <summary>Units of measure offered by the base and purchase unit selectors.</summary>
+    public IReadOnlyList<SelectListItem> Units { get; private set; } = [];
 
     /// <summary>
     /// Loads the product into the form.
@@ -59,12 +72,17 @@ public class EditModel : PageModel
             Sku = product.Sku,
             Name = product.Name,
             Description = product.Description,
-            Category = product.Category,
+            CategoryId = product.CategoryId,
+            BaseUnit = product.BaseUnit,
+            PurchaseUnit = product.PurchaseUnit,
+            PurchaseUnitFactor = product.PurchaseUnitFactor,
             PurchasePrice = product.PurchasePrice,
             SalePrice = product.SalePrice,
             TaxRate = product.TaxRate,
             MinimumStock = product.MinimumStock
         };
+
+        await LoadOptionsAsync(cancellationToken);
 
         return Page();
     }
@@ -78,6 +96,7 @@ public class EditModel : PageModel
     {
         if (!ModelState.IsValid)
         {
+            await LoadOptionsAsync(cancellationToken);
             return Page();
         }
 
@@ -86,11 +105,14 @@ public class EditModel : PageModel
             Input.Sku,
             Input.Name,
             Input.Description,
-            Input.Category,
-            Input.PurchasePrice,
-            Input.SalePrice,
-            Input.TaxRate,
-            Input.MinimumStock);
+            Input.CategoryId!.Value,
+            Input.BaseUnit!.Value,
+            Input.PurchaseUnit!.Value,
+            Input.PurchaseUnitFactor!.Value,
+            Input.PurchasePrice!.Value,
+            Input.SalePrice!.Value,
+            Input.TaxRate!.Value,
+            Input.MinimumStock!.Value);
 
         var result = await _updateProduct.HandleAsync(command, cancellationToken);
 
@@ -101,11 +123,26 @@ public class EditModel : PageModel
                 return NotFound();
             }
 
-            ModelState.AddModelError("Input.Sku", _localizer[result.Error!]);
+            var field = result.Error switch
+            {
+                ProductErrorCodes.CategoryNotFound => "Input.CategoryId",
+                ProductErrorCodes.BaseUnitLocked => "Input.BaseUnit",
+                _ => "Input.Sku"
+            };
+            ModelState.AddModelError(field, _localizer[result.Error!]);
+            await LoadOptionsAsync(cancellationToken);
             return Page();
         }
 
         TempData["StatusMessage"] = _localizer["ProductUpdated"].Value;
         return RedirectToPage("Index");
+    }
+
+    // Loads the active categories and the units of measure used by the selectors.
+    private async Task LoadOptionsAsync(CancellationToken cancellationToken)
+    {
+        var categories = await _getCategories.HandleAsync(new GetCategoriesQuery(), cancellationToken);
+        Categories = _localizer.ToCategorySelectList(categories);
+        Units = _localizer.ToUnitOfMeasureSelectList();
     }
 }

@@ -16,6 +16,6 @@
         .ToList();
     var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path}{Context.Request.QueryString}";
 }
-<form asp-page="/SetLanguage" asp-route-returnUrl="@returnUrl" method="post" class="d-flex">
+<form asp-page="/SetLanguage" asp-route-returnUrl="@returnUrl" method="post" class="d-flex app-language">
     <select name="culture" class="form-select form-select-sm" onchange="this.form.submit()" asp-items="cultureItems"></select>
 </form>

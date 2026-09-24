@@ -17,7 +17,8 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="Input.Sku" class="form-label"></label>
-                    <input asp-for="Input.Sku" class="form-control" />
+                    <input asp-for="Input.Sku" class="form-control" placeholder="@Localizer["SkuPlaceholder"]" />
+                    <div class="form-text">@Localizer["SkuHelp"]</div>
                     <span asp-validation-for="Input.Sku" class="text-danger"></span>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -34,25 +35,57 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Input.Category" class="form-label"></label>
-                <input asp-for="Input.Category" class="form-control" />
-                <span asp-validation-for="Input.Category" class="text-danger"></span>
+                <label asp-for="Input.CategoryId" class="form-label"></label>
+                <select asp-for="Input.CategoryId" asp-items="Model.Categories" class="form-select js-searchable" data-no-results="@Localizer["NoResults"]">
+                    <option value="">@Localizer["SelectCategory"]</option>
+                </select>
+                <span asp-validation-for="Input.CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.BaseUnit" class="form-label"></label>
+                    <select asp-for="Input.BaseUnit" asp-items="Model.Units" class="form-select"></select>
+                    <div class="form-text">@Localizer["BaseUnitEditHelp"]</div>
+                    <span asp-validation-for="Input.BaseUnit" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.PurchaseUnit" class="form-label"></label>
+                    <select asp-for="Input.PurchaseUnit" asp-items="Model.Units" class="form-select"></select>
+                    <div class="form-text">@Localizer["PurchaseUnitHelp"]</div>
+                    <span asp-validation-for="Input.PurchaseUnit" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Input.PurchaseUnitFactor" class="form-label"></label>
+                    <input asp-for="Input.PurchaseUnitFactor" class="form-control js-numeric" type="text" inputmode="decimal" placeholder="1" />
+                    <div class="form-text">@Localizer["PurchaseUnitFactorHelp"]</div>
+                    <span asp-validation-for="Input.PurchaseUnitFactor" class="text-danger"></span>
+                </div>
             </div>
 
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label asp-for="Input.PurchasePrice" class="form-label"></label>
-                    <input asp-for="Input.PurchasePrice" class="form-control" step="0.01" />
+                    <div class="input-group">
+                        <span class="input-group-text">@Localizer["CurrencySymbol"]</span>
+                        <input asp-for="Input.PurchasePrice" class="form-control js-numeric" type="text" inputmode="decimal" placeholder="0.00" />
+                    </div>
+                    <div class="form-text">@Localizer["PurchasePriceHelp"]</div>
+                    <div class="alert alert-info py-1 px-2 small mt-2 mb-0" id="unit-cost-hint" role="status" aria-live="polite"
+                         data-template="@Localizer["UnitCostHint"]" data-currency="@Localizer["CurrencySymbol"]" hidden></div>
                     <span asp-validation-for="Input.PurchasePrice" class="text-danger"></span>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label asp-for="Input.SalePrice" class="form-label"></label>
-                    <input asp-for="Input.SalePrice" class="form-control" step="0.01" />
+                    <div class="input-group">
+                        <span class="input-group-text">@Localizer["CurrencySymbol"]</span>
+                        <input asp-for="Input.SalePrice" class="form-control js-numeric" type="text" inputmode="decimal" placeholder="0.00" />
+                    </div>
                     <span asp-validation-for="Input.SalePrice" class="text-danger"></span>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label asp-for="Input.TaxRate" class="form-label"></label>
-                    <input asp-for="Input.TaxRate" class="form-control" step="0.01" />
+                    <input asp-for="Input.TaxRate" class="form-control js-numeric" type="text" inputmode="decimal" placeholder="0.00" />
                     <span asp-validation-for="Input.TaxRate" class="text-danger"></span>
                 </div>
             </div>
@@ -60,7 +93,7 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label asp-for="Input.MinimumStock" class="form-label"></label>
-                    <input asp-for="Input.MinimumStock" class="form-control" />
+                    <input asp-for="Input.MinimumStock" class="form-control js-numeric" type="text" inputmode="decimal" placeholder="0" />
                     <span asp-validation-for="Input.MinimumStock" class="text-danger"></span>
                 </div>
             </div>

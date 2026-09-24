@@ -46,6 +46,7 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
 | Crear / editar / desactivar productos | sí | sí | no |
 | Clientes | sí | no | sí |
 | Proveedores | sí | sí | no |
+| Categorías | sí | no | no |
 | Ajustes y movimientos de inventario | sí | sí | no |
 | Compras | sí | sí | no |
 | Ventas | sí | no | sí |
@@ -56,7 +57,8 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
 Los productos se gestionan mediante la política de autorización `CanManageProducts`, que da acceso
 solo a Administrator e InventoryManager; Salesperson tiene acceso de solo lectura al catálogo. Los
 clientes y los proveedores usan las políticas `CanManageCustomers` (Administrator, Salesperson) y
-`CanManageSuppliers` (Administrator, InventoryManager) respectivamente.
+`CanManageSuppliers` (Administrator, InventoryManager) respectivamente. Las categorías usan
+`CanManageCategories`, restringida a Administrator porque definen el catálogo compartido.
 
 ## Requisitos
 
@@ -87,17 +89,22 @@ dotnet ef database update --project src/StockFlow.Infrastructure --startup-proje
 dotnet run --project src/StockFlow.Web
 ```
 
-La app escucha por defecto en `http://localhost:5124`. En el primer arranque siembra tres roles
-(`Administrator`, `Salesperson`, `InventoryManager`) y una cuenta de administrador de prueba, ambos
-definidos en `appsettings.Development.json`:
+La app escucha por defecto en `http://localhost:5124`. En el primer arranque siembra los tres roles
+(`Administrator`, `Salesperson`, `InventoryManager`) y una cuenta de prueba por rol, todas definidas
+en la sección `SeedUsers` de `appsettings.Development.json`. Inicia sesión con cualquiera de ellas
+para probar el acceso por rol:
 
-- Correo: `admin@stockflow.local`
-- Contraseña: `Admin#2026`
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Administrator | `admin@stockflow.local` | `Admin#2026` |
+| InventoryManager | `inventory@stockflow.local` | `Inventory#2026` |
+| Salesperson | `sales@stockflow.local` | `Sales#2026` |
 
-La interfaz está disponible en español (por defecto) e inglés; usa el selector de idioma en la barra
-de navegación para cambiar. La autenticación usa el login por cookie de ASP.NET Core Identity
-(`HttpOnly`, `SameSite=Lax`), así que refrescar la página mantiene la sesión — no se guarda ningún
-token en `localStorage`/`sessionStorage`.
+La interfaz está disponible en español (por defecto) e inglés; usa el selector de idioma en el
+encabezado para cambiar. La app usa una navegación lateral (sidebar) y un encabezado oscuro. Los
+montos y porcentajes usan el punto como separador decimal (por ejemplo `1234.56`). La autenticación
+usa el login por cookie de ASP.NET Core Identity (`HttpOnly`, `SameSite=Lax`), así que refrescar la
+página mantiene la sesión — no se guarda ningún token en `localStorage`/`sessionStorage`.
 
 ## Tests
 
@@ -137,13 +144,29 @@ Las Fases 1 (productos) y 2 (clientes y proveedores) están funcionalmente compl
 
 - **Productos:** modelo, mapeo EF Core y migración, CRUD (listado con paginación, crear, editar, baja
   lógica) con acceso por rol, búsqueda y filtrado en vivo por nombre, SKU y categoría, e indicador de
-  stock bajo.
+  stock bajo. El campo SKU explica qué es y muestra un ejemplo, y la categoría es un selector
+  buscable alimentado desde la base de datos.
+- **Unidades de medida (productos):** cada producto tiene una unidad de venta (en la que se lleva
+  el stock y se cobra el precio de venta) y una unidad de compra con un factor de conversión, por
+  ejemplo se compra por caja de 24 y se vende por unidad. El precio de compra es por unidad de compra
+  y de él se deriva el costo por unidad de venta. El stock es decimal, así que los productos a granel
+  admiten fracciones (2.5 lb); las unidades contables (unidad, docena, caja, paquete) solo aceptan
+  cantidades enteras, regla que se valida en el dominio, el formulario y la base de datos. La unidad
+  de venta solo se puede cambiar si el producto no tiene stock.
+- **Categorías:** tabla propia y CRUD (listar, crear, editar, desactivar/reactivar), restringido a
+  Administrator. Una categoría no se puede desactivar mientras tenga productos asociados. Las
+  categorías sembradas (limpieza, bebidas, alimentos, snacks, lácteos, panadería, cuidado personal,
+  otros) se muestran con nombre localizado; las creadas por el usuario usan su propio nombre.
 - **Clientes:** modelo, mapeo EF Core y migración, CRUD con acceso por rol, búsqueda en vivo por
-  nombre, identificación fiscal o correo, y un marcador de historial de compras (hasta la Fase 5,
-  Ventas).
+  nombre, documento o correo, y un marcador de historial de compras (hasta la Fase 5, Ventas). El
+  nombre se valida como nombre de persona y el documento usa un selector de tipo.
 - **Proveedores:** modelo, mapeo EF Core y migración, CRUD con acceso por rol, búsqueda en vivo, y una
   asociación muchos-a-muchos de productos a proveedores que guarda el SKU del proveedor, el precio de
   compra acordado y un único proveedor preferido por producto.
+- **Documento de identidad (clientes y proveedores):** un tipo de documento (DUI, NIT, pasaporte,
+  otro) más el número, único por tipo. El DUI es `00000000-0`; el NIT es de 9 dígitos (DUI homologado
+  para personas naturales) o de 14 dígitos `0000-000000-000-0` para personas jurídicas; pasaporte y
+  otro quedan libres. El número se formatea automáticamente mientras se escribe.
 
 La búsqueda, el filtrado, la paginación y las bajas lógicas funcionan con htmx (vendorizado en
 `wwwroot/lib/htmx`, sin paso de build npm), sin recargar la página, y están cubiertos por pruebas

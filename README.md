@@ -13,6 +13,7 @@ purchases, sales and simulated electronic invoicing.
 - ASP.NET Core Identity
 - Bootstrap
 - htmx (vendored, no npm build step)
+- Tom Select (vendored, searchable category selector)
 - Docker / Docker Compose
 - xUnit
 
@@ -45,6 +46,7 @@ Modular monolith, single repository, layered from the start:
 | Create / edit / deactivate products | yes | yes | no |
 | Customers | yes | no | yes |
 | Suppliers | yes | yes | no |
+| Categories | yes | no | no |
 | Inventory adjustments and movements | yes | yes | no |
 | Purchases | yes | yes | no |
 | Sales | yes | no | yes |
@@ -55,7 +57,8 @@ Modular monolith, single repository, layered from the start:
 Products are managed through the `CanManageProducts` authorization policy, which grants access only
 to Administrator and InventoryManager; Salesperson has read-only access to the catalog. Customers
 and suppliers use the `CanManageCustomers` (Administrator, Salesperson) and `CanManageSuppliers`
-(Administrator, InventoryManager) policies respectively.
+(Administrator, InventoryManager) policies respectively. Categories use `CanManageCategories`, which
+is restricted to Administrator because they define the shared catalog.
 
 ## Requirements
 
@@ -86,16 +89,22 @@ dotnet ef database update --project src/StockFlow.Infrastructure --startup-proje
 dotnet run --project src/StockFlow.Web
 ```
 
-The app listens on `http://localhost:5124` by default. On first run it seeds three roles
-(`Administrator`, `Salesperson`, `InventoryManager`) and a seed admin account, both defined in
-`appsettings.Development.json`:
+The app listens on `http://localhost:5124` by default. On first run it seeds the three roles
+(`Administrator`, `Salesperson`, `InventoryManager`) and one test account per role, all defined under
+the `SeedUsers` section of `appsettings.Development.json`. Sign in with any of them to try the
+role-based access:
 
-- Email: `admin@stockflow.local`
-- Password: `Admin#2026`
+| Role | Email | Password |
+|---|---|---|
+| Administrator | `admin@stockflow.local` | `Admin#2026` |
+| InventoryManager | `inventory@stockflow.local` | `Inventory#2026` |
+| Salesperson | `sales@stockflow.local` | `Sales#2026` |
 
-The UI is available in Spanish (default) and English; use the language selector in the navbar to
-switch. Authentication uses ASP.NET Core Identity's cookie sign-in (HttpOnly, `SameSite=Lax`), so a
-page refresh keeps the session — there is no token stored in `localStorage`/`sessionStorage`.
+The UI is available in Spanish (default) and English; use the language selector in the header to
+switch. The app uses a sidebar navigation and a dark header. Money and percentages use the dot as the
+decimal separator (for example `1234.56`). Authentication uses ASP.NET Core Identity's cookie sign-in
+(HttpOnly, `SameSite=Lax`), so a page refresh keeps the session — there is no token stored in
+`localStorage`/`sessionStorage`.
 
 ## Tests
 
@@ -135,12 +144,28 @@ Phases 1 (products) and 2 (customers and suppliers) are functionally complete.
 
 - **Products:** model, EF Core mapping and migration, CRUD (list with pagination, create, edit,
   soft-delete) with role-based access, live search/filtering by name, SKU and category, and a
-  low-stock indicator.
+  low-stock indicator. The SKU field explains what it is and shows an example, and the category is a
+  searchable selector fed from the database.
+- **Units of measure (products):** each product has a sales unit (used for stock and the sale
+  price) and a purchase unit with a conversion factor, for example bought by the box of 24 and sold
+  by the unit. The purchase price is per purchase unit and the cost per sales unit is derived from
+  it. Stock is decimal, so bulk products can hold fractions (2.5 lb); countable units (unit, dozen,
+  box, pack) only accept whole quantities, enforced in the domain, the form and the database. The
+  sales unit can only change while the product has no stock.
+- **Categories:** their own table and CRUD (list, create, edit, deactivate/reactivate), restricted to
+  Administrator. A category cannot be deactivated while products are associated with it. The seeded
+  categories (cleaning, beverages, food, snacks, dairy, bakery, personal care, other) are shown with
+  a localized name; user-created ones use their own name.
 - **Customers:** model, EF Core mapping and migration, CRUD with role-based access, live search by
-  name, tax id or email, and a purchase-history placeholder (until Phase 5, Sales).
+  name, document or email, and a purchase-history placeholder (until Phase 5, Sales). The name is
+  validated as a person name and the document uses a type selector.
 - **Suppliers:** model, EF Core mapping and migration, CRUD with role-based access, live search, and
   a many-to-many association of products to suppliers that stores the supplier's SKU, the agreed
   purchase price and a single preferred supplier per product.
+- **Identity documents (customers and suppliers):** a document type (DUI, NIT, passport, other) plus
+  the number, unique per type. DUI is `00000000-0`; NIT is 9 digits (homologated DUI for natural
+  persons) or 14 digits `0000-000000-000-0` for legal entities; passport and other stay free. The
+  number is formatted automatically as it is typed.
 
 Search, filtering, pagination and soft deletes run over htmx (vendored in `wwwroot/lib/htmx`, no npm
 build step), without full page reloads, and are covered by unit and integration tests. Inventory,

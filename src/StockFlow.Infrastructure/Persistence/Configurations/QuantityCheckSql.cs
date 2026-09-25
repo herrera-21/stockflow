@@ -18,18 +18,20 @@ internal static class QuantityCheckSql
             .Select(unit => $"'{unit}'"));
 
     /// <summary>
-    /// SQL check for a stock column: never negative and whole for countable base units.
+    /// SQL check for a stock column: never negative and whole for countable units.
     /// </summary>
     /// <param name="column">Name of the column to check.</param>
+    /// <param name="unitColumn">Name of the column that holds the unit; defaults to the base unit.</param>
     /// <returns>The check expression.</returns>
-    public static string NonNegativeWhole(string column) =>
-        $"[{column}] >= 0 AND ([BaseUnit] NOT IN ({CountableUnits()}) OR [{column}] = FLOOR([{column}]))";
+    public static string NonNegativeWhole(string column, string unitColumn = "BaseUnit") =>
+        $"[{column}] >= 0 AND ([{unitColumn}] NOT IN ({CountableUnits()}) OR [{column}] = FLOOR([{column}]))";
 
     /// <summary>
-    /// SQL check for a quantity column: positive and whole for countable base units.
+    /// SQL check for a quantity column: positive and whole for countable units.
     /// </summary>
     /// <param name="column">Name of the column to check.</param>
+    /// <param name="unitColumn">Name of the column that holds the unit; defaults to the base unit.</param>
     /// <returns>The check expression.</returns>
-    public static string PositiveWhole(string column) =>
-        $"[{column}] > 0 AND ([BaseUnit] NOT IN ({CountableUnits()}) OR [{column}] = FLOOR([{column}]))";
+    public static string PositiveWhole(string column, string unitColumn = "BaseUnit") =>
+        $"[{column}] > 0 AND ([{unitColumn}] NOT IN ({CountableUnits()}) OR [{column}] = FLOOR([{column}]))";
 }

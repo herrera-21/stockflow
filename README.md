@@ -37,6 +37,10 @@ Modular monolith, single repository, layered from the start:
 - **Concurrency:** each product carries a rowversion; two simultaneous operations cannot silently
   overwrite each other's stock. The second save is rejected with a clear, localized "reload and try
   again" message.
+- **Purchases:** a purchase order is drafted, confirmed and then received into stock. It can only be
+  edited while it is a draft, an order without lines cannot be confirmed, and a received order
+  cannot be cancelled. Each line snapshots the purchase unit, the base unit and the conversion
+  factor, and a product cannot be repeated in the same order.
 - **Sales:** a confirmed sale cannot be modified directly; canceling it reverts the inventory.
 - **Returns:** the returned quantity cannot exceed the originally sold quantity minus previous
   returns.
@@ -178,12 +182,19 @@ Phases 1 (products), 2 (customers and suppliers) and 3 (inventory) are functiona
 - **Suppliers:** model, EF Core mapping and migration, CRUD with role-based access, live search, and
   a many-to-many association of products to suppliers that stores the supplier's SKU, the agreed
   purchase price and a single preferred supplier per product.
+- **Purchases (model):** the purchase order and line entities with their statuses (draft, confirmed,
+  received, cancelled) and the rules that guard the transitions: only a draft can be edited, an
+  order without lines cannot be confirmed, a received order cannot be cancelled and a product cannot
+  be repeated in the same order. Each line snapshots the purchase unit, the base unit and the
+  conversion factor and stores its cost and subtotal. Order numbers come from a SQL Server sequence
+  formatted as `OC-000001`. The purchasing flow (create draft, confirm, receive into stock) and its
+  UI are not implemented yet.
 - **Identity documents (customers and suppliers):** a document type (DUI, NIT, passport, other) plus
   the number, unique per type. DUI is `00000000-0`; NIT is 9 digits (homologated DUI for natural
   persons) or 14 digits `0000-000000-000-0` for legal entities; passport and other stay free. The
   number is formatted automatically as it is typed.
 
 Search, filtering, pagination and soft deletes run over htmx (vendored in `wwwroot/lib/htmx`, no npm
-build step), without full page reloads, and are covered by unit and integration tests. Purchases,
-sales and invoicing are not implemented yet.
+build step), without full page reloads, and are covered by unit and integration tests. The purchasing
+flow and UI, sales and invoicing are not implemented yet.
 

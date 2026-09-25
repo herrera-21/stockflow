@@ -25,6 +25,9 @@ public static class DependencyInjection
 
         services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
+        // Document numbering backed by the SQL Server purchase order sequence.
+        services.AddScoped<IPurchaseNumberGenerator, PurchaseNumberGenerator>();
+
         return services;
     }
 }

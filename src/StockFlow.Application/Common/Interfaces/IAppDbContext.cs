@@ -28,6 +28,12 @@ public interface IAppDbContext
     /// <summary>Inventory movements set.</summary>
     DbSet<InventoryMovement> InventoryMovements { get; }
 
+    /// <summary>Purchase orders set.</summary>
+    DbSet<Purchase> Purchases { get; }
+
+    /// <summary>Purchase order lines set.</summary>
+    DbSet<PurchaseLine> PurchaseLines { get; }
+
     /// <summary>Persists pending changes to the database.</summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The number of state entries written to the database.</returns>

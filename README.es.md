@@ -37,6 +37,10 @@ Monolito modular, un solo repositorio, separado en capas desde el inicio:
 - **Concurrencia:** cada producto lleva un rowversion; dos operaciones simultáneas no pueden pisarse
   el stock sin darse cuenta. El segundo guardado se rechaza con un mensaje claro y localizado de
   "recarga e inténtalo de nuevo".
+- **Compras:** una orden de compra se crea como borrador, se confirma y luego se recibe en stock.
+  Solo puede editarse mientras es borrador, una orden sin líneas no se puede confirmar y una orden
+  recibida no se puede cancelar. Cada línea copia la unidad de compra, la unidad base y el factor de
+  conversión, y un producto no se puede repetir en la misma orden.
 - **Ventas:** una venta confirmada no puede modificarse directamente; cancelarla revierte el
   inventario.
 - **Devoluciones:** la cantidad devuelta no puede superar la cantidad originalmente vendida menos
@@ -181,6 +185,13 @@ Las Fases 1 (productos), 2 (clientes y proveedores) y 3 (inventario) están func
 - **Proveedores:** modelo, mapeo EF Core y migración, CRUD con acceso por rol, búsqueda en vivo, y una
   asociación muchos-a-muchos de productos a proveedores que guarda el SKU del proveedor, el precio de
   compra acordado y un único proveedor preferido por producto.
+- **Compras (modelo):** las entidades de orden de compra y línea con sus estados (borrador,
+  confirmada, recibida, cancelada) y las reglas que protegen las transiciones: solo se edita el
+  borrador, una orden sin líneas no se puede confirmar, una orden recibida no se puede cancelar y un
+  producto no se repite en la misma orden. Cada línea copia la unidad de compra, la unidad base y el
+  factor de conversión y guarda su costo y subtotal. Los números de orden vienen de una secuencia de
+  SQL Server con formato `OC-000001`. El flujo de compras (crear borrador, confirmar, recibir en
+  stock) y su UI aún no están implementados.
 - **Documento de identidad (clientes y proveedores):** un tipo de documento (DUI, NIT, pasaporte,
   otro) más el número, único por tipo. El DUI es `00000000-0`; el NIT es de 9 dígitos (DUI homologado
   para personas naturales) o de 14 dígitos `0000-000000-000-0` para personas jurídicas; pasaporte y
@@ -188,4 +199,5 @@ Las Fases 1 (productos), 2 (clientes y proveedores) y 3 (inventario) están func
 
 La búsqueda, el filtrado, la paginación y las bajas lógicas funcionan con htmx (vendorizado en
 `wwwroot/lib/htmx`, sin paso de build npm), sin recargar la página, y están cubiertos por pruebas
-unitarias y de integración. Compras, ventas y facturación aún no están implementados.
+unitarias y de integración. El flujo y la UI de compras, las ventas y la facturación aún no están
+implementados.
